@@ -1,12 +1,12 @@
-#include <iostream>
-#include <string>
 #include "../base/pmvs/findMatch.h"
 #include "../base/pmvs/option.h"
+#include <iostream>
+#include <string>
 
 using namespace PMVS3;
 using namespace std;
 
-int main(int argc, char* argv[]) {
+int main(int argc, char *argv[]) {
   if (argc < 3) {
     cerr << "Usage: " << argv[0] << " prefix option_file [Optional export]" << endl
          << endl
@@ -27,16 +27,15 @@ int main(int argc, char* argv[]) {
          << endl
          << "[Optional export] PATCH PSET" << endl
          << " i.e export patch and pset: prefix option_file PATCH PSET"
-         << " i.e export patch only: prefix option_file PATCH" <<endl;
-    exit (1);
+         << " i.e export patch only: prefix option_file PATCH" << endl;
+    exit(1);
   }
 
-  for(int i=0; i < argc; ++i)
-  {
-	  cout << endl << argv[i];
+  for (int i = 0; i < argc; ++i) {
+    cout << endl << argv[i];
   }
   cout << std::endl;
-  
+
   PMVS3::Soption option;
   option.init(argv[1], argv[2]);
 
@@ -44,12 +43,11 @@ int main(int argc, char* argv[]) {
   findMatch.init(option);
   findMatch.run();
 
-  bool bExportPLY = true;
+  bool bExportPLY   = true;
   bool bExportPatch = false;
-  bool bExportPSet = false;
+  bool bExportPSet  = false;
 
-  for (int i=3; i < argc; ++i)
-  {
+  for (int i = 3; i < argc; ++i) {
     std::string option(argv[i]);
     if (option == "PATCH")
       bExportPatch = true;

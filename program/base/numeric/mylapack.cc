@@ -9,8 +9,8 @@
 
 #if defined(PMVS_USE_LAPACK)
 extern "C" {
-#include <clapack/f2c.h>
 #include <clapack/clapack.h>
+#include <clapack/f2c.h>
 };
 #endif
 
@@ -21,7 +21,7 @@ using namespace std;
 // Values contain singular values stored in an increasing order
 void Cmylapack::hlls(const std::vector<std::vector<float> >& A,
                      std::vector<float>& vec,
-                     std::vector<float>& values) {  
+                     std::vector<float>& values) {
   char jobu = 'N';    char jobvt = 'S';
   integer M = (int)A.size();
   if (M == 0) {
@@ -29,6 +29,7 @@ void Cmylapack::hlls(const std::vector<std::vector<float> >& A,
   }
   integer N = (int)A[0].size();
   
+
   float *C = new float[M * N];
   int count = 0;
   for (int x = 0; x < N; ++x)
@@ -44,6 +45,7 @@ void Cmylapack::hlls(const std::vector<std::vector<float> >& A,
   float *work = new float[lwork];
   integer info;
   
+
   sgesvd_(&jobu, &jobvt, &M, &N, C, &lda, S, NULL, &LDU,
           VT, &LDVT, work, &lwork, &info);
 
@@ -65,6 +67,7 @@ void Cmylapack::hlls(const std::vector<std::vector<double> >& A,
                      std::vector<double>& vec,
                      std::vector<double>& values) {
   
+
   char jobu = 'N';    char jobvt = 'S';
   integer M = (int)A.size();
   if (M == 0) {
@@ -72,6 +75,7 @@ void Cmylapack::hlls(const std::vector<std::vector<double> >& A,
   }
   integer N = (int)A[0].size();
   
+
   double *C = new double[M * N];
   int count = 0;
   for (int x = 0; x < N; ++x)
@@ -87,6 +91,7 @@ void Cmylapack::hlls(const std::vector<std::vector<double> >& A,
   double *work = new double[lwork];
   integer info;
   
+
   dgesvd_(&jobu, &jobvt, &M, &N, C, &lda, S, NULL, &LDU,
           VT, &LDVT, work, &lwork, &info);
 
@@ -103,9 +108,7 @@ void Cmylapack::hlls(const std::vector<std::vector<double> >& A,
 }
 */
 
-void Cmylapack::lls(const std::vector<std::vector<float> >& A,
-                    const std::vector<float>& b,
-                    std::vector<float>& ans) {
+void Cmylapack::lls(const std::vector<std::vector<float>> &A, const std::vector<float> &b, std::vector<float> &ans) {
   int m = static_cast<int>(A.size());
   int n = static_cast<int>(A[0].size());
 
@@ -124,14 +127,14 @@ void Cmylapack::lls(const std::vector<std::vector<float> >& A,
   b2.resize(m);
   for (int i = 0; i < m; ++i)
     b2[i] = b[i];
-  
+
   integer ldb = m;
   integer lwork = n + m;
   vector<float> work;
   work.resize(lwork);
   integer info;
-  sgels_(&trans, &m, &n, &nrhs, &a[0], &lda, &b2[0], &ldb, &work[0],
-         &lwork, &info);
+  sgels_(&trans, &m, &n, &nrhs, &a[0], &lda, &b2[0], &ldb, &work[0], &lwork,
+         &info);
 
   ans.resize(n);
   for (int i = 0; i < n; ++i)
@@ -172,6 +175,7 @@ void Cmylapack::lls(const std::vector<std::vector<double> >& A,
   for (int i = 0; i < m; ++i)
     b2[i] = b[i];
   
+
   integer ldb = m;
   integer lwork = n + m;
   vector<double> work;
@@ -180,6 +184,7 @@ void Cmylapack::lls(const std::vector<std::vector<double> >& A,
   dgels_(&trans, &m, &n, &nrhs, &a[0], &lda, &b2[0], &ldb, &work[0],
          &lwork, &info);
   
+
   ans.resize(n);
   for (int i = 0; i < n; ++i)
     ans[i] = b2[i];
@@ -194,6 +199,7 @@ void Cmylapack::lls(std::vector<float>& A,
   integer info;
   vector<float> work(width * height);
   
+
   sgels_(&trans, &width, &height, &nrhs, &A[0], &width, &b[0], &width, &work[0],
          &lwork, &info);
 }
@@ -207,6 +213,7 @@ void Cmylapack::lls(std::vector<double>& A,
   integer info;
   vector<double> work(width * height);
   
+
   dgels_(&trans, &width, &height, &nrhs, &A[0], &width, &b[0], &width, &work[0],
          &lwork, &info);
 }
@@ -223,6 +230,7 @@ void Cmylapack::svd(const std::vector<std::vector<float> >& A,
   }
   integer N = (int)A[0].size();
   
+
   float *C = new float[M * N];
   int count = 0;
   for (int x = 0; x < N; ++x)
@@ -240,6 +248,7 @@ void Cmylapack::svd(const std::vector<std::vector<float> >& A,
   float *work= new float[lwork];
   integer info;
   
+
   sgesvd_(&jobu, &jobvt, &M, &N, C, &lda, S2, U2, &LDU,
           VT2, &LDVT, work, &lwork, &info);
 
@@ -247,15 +256,18 @@ void Cmylapack::svd(const std::vector<std::vector<float> >& A,
   for (int y = 0; y < M; ++y)
     U[y].resize(M);
   
+
   VT.resize(N);
   for (int y = 0; y < N; ++y)
     VT[y].resize(N);
   
+
   count = 0;
   for (int x = 0; x < M; ++x)
     for (int y = 0; y < M; ++y)
       U[y][x] = U2[count++];
   
+
   count = 0;
   for (int x = 0; x < N; ++x)
     for (int y = 0; y < N; ++y)

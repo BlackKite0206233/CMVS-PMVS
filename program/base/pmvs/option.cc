@@ -1,29 +1,33 @@
-#include <iostream>
-#include <fstream>
 #include <cstdlib>
+#include <fstream>
+#include <iostream>
 #define _USE_MATH_DEFINES
-#include <math.h>
 #include "option.h"
 #include <algorithm>
-
+#include <math.h>
 
 using namespace std;
 using namespace PMVS3;
 
 Soption::Soption(void) {
-  m_level = 1;          m_csize = 2;
-  m_threshold = 0.7;    m_wsize = 7;
-  m_minImageNum = 3;    m_CPU = 4;
-  m_setEdge = 0.0f;     m_useBound = 0;
-  m_useVisData = 0;     m_sequence = -1;
-  m_tflag = -10;
-  m_oflag = -10;
+  m_level       = 1;
+  m_csize       = 2;
+  m_threshold   = 0.7;
+  m_wsize       = 7;
+  m_minImageNum = 3;
+  m_CPU         = 4;
+  m_setEdge     = 0.0f;
+  m_useBound    = 0;
+  m_useVisData  = 0;
+  m_sequence    = -1;
+  m_tflag       = -10;
+  m_oflag       = -10;
 
   // Max angle must be at least this big
   m_maxAngleThreshold = 10.0f * M_PI / 180.0f;
   // The smaller the tighter
   m_quadThreshold = 2.5f;
-}  
+}
 
 void Soption::init(const std::string prefix, const std::string option) {
   m_prefix = prefix;
@@ -42,16 +46,26 @@ void Soption::init(const std::string prefix, const std::string option) {
       ifstr.getline(buffer, 1024);
       continue;
     }
-    if (name == "level")             ifstr >> m_level;
-    else if (name == "csize")        ifstr >> m_csize;
-    else if (name == "threshold")    ifstr >> m_threshold;
-    else if (name == "wsize")        ifstr >> m_wsize;
-    else if (name == "minImageNum")  ifstr >> m_minImageNum;
-    else if (name == "CPU")          ifstr >> m_CPU;
-    else if (name == "setEdge")      ifstr >> m_setEdge;
-    else if (name == "useBound")     ifstr >> m_useBound;
-    else if (name == "useVisData")   ifstr >> m_useVisData;
-    else if (name == "sequence")     ifstr >> m_sequence;
+    if (name == "level")
+      ifstr >> m_level;
+    else if (name == "csize")
+      ifstr >> m_csize;
+    else if (name == "threshold")
+      ifstr >> m_threshold;
+    else if (name == "wsize")
+      ifstr >> m_wsize;
+    else if (name == "minImageNum")
+      ifstr >> m_minImageNum;
+    else if (name == "CPU")
+      ifstr >> m_CPU;
+    else if (name == "setEdge")
+      ifstr >> m_setEdge;
+    else if (name == "useBound")
+      ifstr >> m_useBound;
+    else if (name == "useVisData")
+      ifstr >> m_useVisData;
+    else if (name == "sequence")
+      ifstr >> m_sequence;
     else if (name == "timages") {
       ifstr >> m_tflag;
       if (m_tflag == -1) {
@@ -59,52 +73,50 @@ void Soption::init(const std::string prefix, const std::string option) {
         ifstr >> firstimage >> lastimage;
         for (int i = firstimage; i < lastimage; ++i)
           m_timages.push_back(i);
-      }
-      else if (0 < m_tflag) {
+      } else if (0 < m_tflag) {
         for (int i = 0; i < m_tflag; ++i) {
-          int itmp;          ifstr >> itmp;
+          int itmp;
+          ifstr >> itmp;
           m_timages.push_back(itmp);
         }
+      } else {
+        cerr << "tflag is not valid: " << m_tflag << endl;
+        exit(1);
       }
-      else {
-        cerr << "tflag is not valid: " << m_tflag << endl;   exit (1);
-      }
-    }
-    else if (name == "oimages") {
+    } else if (name == "oimages") {
       ifstr >> m_oflag;
       if (m_oflag == -1) {
         int firstimage, lastimage;
         ifstr >> firstimage >> lastimage;
         for (int i = firstimage; i < lastimage; ++i)
           m_oimages.push_back(i);
-      }
-      else if (0 <= m_oflag) {
+      } else if (0 <= m_oflag) {
         for (int i = 0; i < m_oflag; ++i) {
-          int itmp;          ifstr >> itmp;
+          int itmp;
+          ifstr >> itmp;
           m_oimages.push_back(itmp);
         }
+      } else if (m_oflag != -2 && m_oflag != -3) {
+        cerr << "oflag is not valid: " << m_oflag << endl;
+        exit(1);
       }
-      else if (m_oflag != -2 && m_oflag != -3) {
-        cerr << "oflag is not valid: " << m_oflag << endl;   exit (1);
-      }
-    }
-    else if (name == "quad")      ifstr >> m_quadThreshold;
+    } else if (name == "quad")
+      ifstr >> m_quadThreshold;
     else if (name == "maxAngle") {
       ifstr >> m_maxAngleThreshold;
       m_maxAngleThreshold *= M_PI / 180.0f;
-    }
-    else {
-      cerr << "Unrecognizable option: " << name << endl;   exit (1);
+    } else {
+      cerr << "Unrecognizable option: " << name << endl;
+      exit(1);
     }
   }
   ifstr.close();
 
   if (m_tflag == -10 || m_oflag == -10) {
-    cerr << "m_tflag and m_oflag not specified: "
-         << m_tflag << ' ' << m_oflag << endl;
-    exit (1);
+    cerr << "m_tflag and m_oflag not specified: " << m_tflag << ' ' << m_oflag << endl;
+    exit(1);
   }
-  
+
   //----------------------------------------------------------------------
   string sbimages = prefix + string("bimages.dat");
 
@@ -113,11 +125,11 @@ void Soption::init(const std::string prefix, const std::string option) {
 
   initOimages();
   initVisdata();
-  
+
   if (m_useBound)
     initBindexes(sbimages);
 
-  cerr << "--------------------------------------------------" << endl  
+  cerr << "--------------------------------------------------" << endl
        << "--- Summary of specified options ---" << endl;
   cerr << "# of timages: " << (int)m_timages.size();
   if (m_tflag == -1)
@@ -151,10 +163,11 @@ void Soption::initOimages(void) {
   if (!ifstr.is_open()) {
     cerr << "No vis.dat although specified to initOimages: " << endl
          << svisdata << endl;
-    exit (1);
+    exit(1);
   }
-  
-  string header;  int num2;
+
+  string header;
+  int num2;
   ifstr >> header >> num2;
 
   m_oimages.clear();
@@ -175,7 +188,7 @@ void Soption::initOimages(void) {
     }
   }
   ifstr.close();
-  
+
   sort(m_oimages.begin(), m_oimages.end());
   m_oimages.erase(unique(m_oimages.begin(), m_oimages.end()), m_oimages.end());
 }
@@ -199,15 +212,14 @@ void Soption::initVisdata(void) {
           m_visdata2[y].push_back(x);
         }
     }
-  }
-  else
+  } else
     initVisdata2();
 }
 
 // Given m_timages and m_oimages, set m_visdata, m_visdata2
 void Soption::initVisdata2(void) {
   string svisdata = m_prefix + string("vis.dat");
-  
+
   vector<int> images;
   images.insert(images.end(), m_timages.begin(), m_timages.end());
   images.insert(images.end(), m_oimages.begin(), m_oimages.end());
@@ -220,10 +232,11 @@ void Soption::initVisdata2(void) {
   if (!ifstr.is_open()) {
     cerr << "No vis.dat although specified to initVisdata2: " << endl
          << svisdata << endl;
-    exit (1);
+    exit(1);
   }
-  
-  string header;  int num2;
+
+  string header;
+  int num2;
   ifstr >> header >> num2;
 
   m_visdata2.resize((int)images.size());
@@ -253,7 +266,7 @@ void Soption::initVisdata2(void) {
   ifstr.close();
 
   const int num = (int)images.size();
-  m_visdata.clear();  
+  m_visdata.clear();
   m_visdata.resize(num);
   for (int y = 0; y < num; ++y) {
     m_visdata[y].resize(num);
@@ -264,26 +277,26 @@ void Soption::initVisdata2(void) {
 
   // check symmetry
   for (int i = 0; i < (int)m_visdata.size(); ++i) {
-    for (int j = i+1; j < (int)m_visdata.size(); ++j) {
+    for (int j = i + 1; j < (int)m_visdata.size(); ++j) {
       if (m_visdata[i][j] != m_visdata[j][i]) {
         m_visdata[i][j] = m_visdata[j][i] = 1;
       }
     }
   }
 }
-                                             
+
 void Soption::initBindexes(const std::string sbimages) {
   if (sbimages.empty())
     return;
-  
+
   m_bindexes.clear();
   ifstream ifstr;
   ifstr.open(sbimages.c_str());
   if (!ifstr.is_open()) {
     cerr << "File not found: " << sbimages << endl;
-    exit (1);
+    exit(1);
   }
-  
+
   cerr << "Reading bimages" << endl;
   int itmp;
   ifstr >> itmp;

@@ -1,15 +1,15 @@
 #ifndef PMVS3_POINT_H
 #define PMVS3_POINT_H
 
-#include "../numeric/vec4.h"
 #include "../numeric/mat3.h"
+#include "../numeric/vec4.h"
 
 namespace PMVS3 {
 class Cpoint {
- public:
+public:
   Cpoint(void);
   virtual ~Cpoint();
-  
+
   Vec3f m_icoord;
   float m_response;
 
@@ -22,19 +22,19 @@ class Cpoint {
 
   // 3D coordinate
   Vec4f m_coord;
-  
-  bool operator < (const Cpoint& rhs) const {
+
+  bool operator<(const Cpoint &rhs) const {
     return m_response < rhs.m_response;
   }
 
-  friend std::istream& operator >>(std::istream& istr, Cpoint& rhs);
-  friend std::ostream& operator <<(std::ostream& ostr, const Cpoint& rhs);
+  friend std::istream &operator>>(std::istream &istr, Cpoint &rhs);
+  friend std::ostream &operator<<(std::ostream &ostr, const Cpoint &rhs);
 };
 
-bool SortCpoint(const Cpoint& a, const Cpoint& b);
+bool SortCpoint(const Cpoint &a, const Cpoint &b);
 
-std::istream& operator >>(std::istream& istr, Cpoint& rhs);
-std::ostream& operator <<(std::ostream& ostr, const Cpoint& rhs);
-};
+std::istream &operator>>(std::istream &istr, Cpoint &rhs);
+std::ostream &operator<<(std::ostream &ostr, const Cpoint &rhs);
+}; // namespace PMVS3
 
-#endif //PMVS3_POINT_H
+#endif // PMVS3_POINT_H
