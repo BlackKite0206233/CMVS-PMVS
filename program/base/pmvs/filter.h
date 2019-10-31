@@ -18,7 +18,7 @@ public:
 
   float computeGain(const Patch::Cpatch &patch, const int lock);
 
-  int filterQuad(const Patch::Cpatch &patch, const std::vector<Patch::Ppatch> &neighbors) const;
+  bool filterQuad(const Patch::Cpatch &patch, const std::vector<Patch::Ppatch> &neighbors) const;
 
 protected:
   void filterOutside(void);

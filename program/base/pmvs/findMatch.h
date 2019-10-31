@@ -31,12 +31,12 @@ public:
   void run(void);
   void write(const std::string prefix, bool bExportPLY, bool bExportPatch, bool bExportPSet);
 
-  int insideBimages(const Vec4f &coord) const;
+  bool insideBimages(const Vec4f &coord) const;
 
-  int isNeighborRadius(const Patch::Cpatch &lhs, const Patch::Cpatch &rhs, const float hunit, const float neighborThreshold, const float radius) const;
+  bool isNeighborRadius(const Patch::Cpatch &lhs, const Patch::Cpatch &rhs, const float hunit, const float neighborThreshold, const float radius) const;
 
-  int isNeighbor(const Patch::Cpatch &lhs, const Patch::Cpatch &rhs, const float hunit, const float neighborThreshold) const;
-  int isNeighbor(const Patch::Cpatch &lhs, const Patch::Cpatch &rhs, const float neighborThreshold) const;
+  bool isNeighbor(const Patch::Cpatch &lhs, const Patch::Cpatch &rhs, const float hunit, const float neighborThreshold) const;
+  bool isNeighbor(const Patch::Cpatch &lhs, const Patch::Cpatch &rhs, const float neighborThreshold) const;
 
   //----------------------------------------------------------------------
   // num of target images

@@ -69,10 +69,10 @@ void CpatchOrganizerS::init(void) {
     m_gheights[index] = gheight;
 
     if (index < m_fm.m_tnum) {
-      m_pgrids[index].resize(gwidth * gheight);
+      m_pgrids[index].resize(gwidth  * gheight);
       m_vpgrids[index].resize(gwidth * gheight);
       m_dpgrids[index].resize(gwidth * gheight);
-      m_counts[index].resize(gwidth * gheight);
+      m_counts[index].resize(gwidth  * gheight);
       fill(m_dpgrids[index].begin(), m_dpgrids[index].end(), m_MAXDEPTH);
     }
   }
@@ -192,7 +192,7 @@ void CpatchOrganizerS::readPatches(void) {
   }
 }
 
-void CpatchOrganizerS::collectPatches(const int target) {
+void CpatchOrganizerS::collectPatches(const bool target) {
   m_ppatches.clear();
 
   for (int index = 0; index < m_fm.m_tnum; ++index) {
@@ -213,7 +213,7 @@ void CpatchOrganizerS::collectPatches(const int target) {
         if ((*begin)->m_id == -1) {
           (*begin)->m_id = count++;
 
-          if (target == 0 || (*begin)->m_fix == 0)
+          if (!target || !(*begin)->m_fix)
             m_ppatches.push_back(*begin);
         }
         ++begin;
@@ -227,7 +227,7 @@ void CpatchOrganizerS::collectPatches(std::priority_queue<Patch::Ppatch, std::ve
     for (int i = 0; i < (int)m_pgrids[index].size(); ++i) {
       vector<Ppatch>::iterator begin = m_pgrids[index][i].begin();
       while (begin != m_pgrids[index][i].end()) {
-        if ((*begin)->m_flag == 0) {
+        if (!(*begin)->m_flag) {
           (*begin)->m_flag = 1;
           pqpatches.push(*begin);
         }
@@ -244,7 +244,7 @@ void CpatchOrganizerS::collectPatches(const int index, std::priority_queue<Patch
     vector<Ppatch>::iterator end   = m_pgrids[index][i].end();
 
     while (begin != end) {
-      if ((*begin)->m_images[0] == index && (*begin)->m_flag == 0) {
+      if ((*begin)->m_images[0] == index && !(*begin)->m_flag) {
         (*begin)->m_flag = 1;
         pqpatches.push(*begin);
       }
@@ -262,7 +262,7 @@ void CpatchOrganizerS::collectNonFixPatches(const int index, std::vector<Patch::
     vector<Ppatch>::iterator end   = m_pgrids[index][i].end();
 
     while (begin != end) {
-      if ((*begin)->m_images[0] == index && (*begin)->m_fix == 0) {
+      if ((*begin)->m_images[0] == index && !(*begin)->m_fix) {
         ppatches.push_back(*begin);
       }
       ++begin;
@@ -314,7 +314,7 @@ void CpatchOrganizerS::addPatch(Patch::Ppatch &ppatch) {
   }
 
   // If depth, set vimages
-  if (m_fm.m_depth == 0)
+  if (!m_fm.m_depth)
     return;
 
   bimage = ppatch->m_vimages.begin();
@@ -372,12 +372,11 @@ void CpatchOrganizerS::setGridsImages(Patch::Cpatch &patch, const std::vector<in
   vector<int>::const_iterator bimage = images.begin();
   vector<int>::const_iterator eimage = images.end();
   while (bimage != eimage) {
-    const Vec3f icoord =
-        m_fm.m_pss.project(*bimage, patch.m_coord, m_fm.m_level);
+    const Vec3f icoord = m_fm.m_pss.project(*bimage, patch.m_coord, m_fm.m_level);
     const int ix = ((int)floor(icoord[0] + 0.5f)) / m_fm.m_csize;
     const int iy = ((int)floor(icoord[1] + 0.5f)) / m_fm.m_csize;
-    if (0 <= ix && ix < m_gwidths[*bimage] && 0 <= iy &&
-        iy < m_gheights[*bimage]) {
+    if (0 <= ix && ix < m_gwidths[*bimage] && 
+        0 <= iy && iy < m_gheights[*bimage]) {
       patch.m_images.push_back(*bimage);
       patch.m_grids.push_back(Vec2i(ix, iy));
     }
@@ -425,11 +424,11 @@ void CpatchOrganizerS::setVImagesVGrids(Cpatch &patch) {
       continue;
 
     int ix, iy;
-    if (isVisible0(patch, image, ix, iy, m_fm.m_neighborThreshold, 1) == 0) {
+    if (!isVisible0(patch, image, ix, iy, m_fm.m_neighborThreshold, 1)) {
       continue;
     }
 
-    if (m_fm.m_pss.getEdge(patch.m_coord, image, m_fm.m_level) == 0)
+    if (!m_fm.m_pss.getEdge(patch.m_coord, image, m_fm.m_level))
       continue;
 
     patch.m_vimages.push_back(image);
@@ -470,7 +469,7 @@ void CpatchOrganizerS::removePatch(const Ppatch &ppatch) {
   }
 }
 
-int CpatchOrganizerS::isVisible0(const Cpatch &patch, const int image, int &ix, int &iy, const float strict, const int lock) {
+bool CpatchOrganizerS::isVisible0(const Cpatch &patch, const int image, int &ix, int &iy, const float strict, const bool lock) {
   const Vec3f icoord = m_fm.m_pss.project(image, patch.m_coord, m_fm.m_level);
   ix = ((int)floor(icoord[0] + 0.5f)) / m_fm.m_csize;
   iy = ((int)floor(icoord[1] + 0.5f)) / m_fm.m_csize;
@@ -478,15 +477,15 @@ int CpatchOrganizerS::isVisible0(const Cpatch &patch, const int image, int &ix, 
   return isVisible(patch, image, ix, iy, strict, lock);
 }
 
-int CpatchOrganizerS::isVisible(const Cpatch &patch, const int image, const int &ix, const int &iy, const float strict, const int lock) {
+bool CpatchOrganizerS::isVisible(const Cpatch &patch, const int image, const int &ix, const int &iy, const float strict, const bool lock) {
   const int &gwidth  = m_gwidths[image];
   const int &gheight = m_gheights[image];
 
   if (ix < 0 || gwidth <= ix || iy < 0 || gheight <= iy)
-    return 0;
+    return false;
 
-  if (m_fm.m_depth == 0)
-    return 1;
+  if (!m_fm.m_depth)
+    return true;
 
   int ans = 0;
   Ppatch dppatch  = m_MAXDEPTH;
@@ -503,26 +502,24 @@ int CpatchOrganizerS::isVisible(const Cpatch &patch, const int image, const int 
   if (lock)
     m_fm.m_imageLocks[image].unlock();
 
-  if (ans == 1)
-    return 1;
+  if (ans)
+    return true;
 
   Vec4f ray = patch.m_coord - m_fm.m_pss.m_photos[image].m_center;
   unitize(ray);
   const float diff = ray * (patch.m_coord - dppatch->m_coord);
   const float factor = min(2.0, 2.0 + ray * patch.m_normal);
 
-  if (diff < m_fm.m_optim.getUnit(image, patch.m_coord) * m_fm.m_csize * strict * factor)
-    return 1;
-  else
-    return 0;
+  return diff < m_fm.m_optim.getUnit(image, patch.m_coord) * m_fm.m_csize * strict * factor;
 }
 
-void CpatchOrganizerS::findNeighbors(const Patch::Cpatch &patch, std::vector<Patch::Ppatch> &neighbors, const int lock, const float scale, const int margin, const int skipvis) {
+void CpatchOrganizerS::findNeighbors(const Patch::Cpatch &patch, std::vector<Patch::Ppatch> &neighbors, 
+                                     const bool lock, const float scale, const int margin, const bool skipvis) {
   const float radius = 1.5 * margin * m_fm.m_expand.computeRadius(patch);
 
-  vector<int>::const_iterator bimage = patch.m_images.begin();
-  vector<int>::const_iterator eimage = patch.m_images.end();
-  vector<Vec2i>::const_iterator bgrid = patch.m_grids.begin();
+  vector<int>::const_iterator   bimage = patch.m_images.begin();
+  vector<int>::const_iterator   eimage = patch.m_images.end();
+  vector<Vec2i>::const_iterator bgrid  = patch.m_grids.begin();
 
 #ifdef DEBUG
   if (patch.m_images.empty()) {
@@ -579,7 +576,7 @@ void CpatchOrganizerS::findNeighbors(const Patch::Cpatch &patch, std::vector<Pat
     ++bgrid;
   }
 
-  if (skipvis == 0) {
+  if (!skipvis) {
     bimage = patch.m_vimages.begin();
     eimage = patch.m_vimages.end();
     bgrid  = patch.m_vgrids.begin();
@@ -637,7 +634,7 @@ float CpatchOrganizerS::computeUnit(const Patch::Cpatch &patch) const {
 }
 
 void CpatchOrganizerS::setScales(Patch::Cpatch &patch) const {
-  const float unit = m_fm.m_optim.getUnit(patch.m_images[0], patch.m_coord);
+  const float unit  = m_fm.m_optim.getUnit(patch.m_images[0], patch.m_coord);
   const float unit2 = 2.0f * unit;
   Vec4f ray = patch.m_coord - m_fm.m_pss.m_photos[patch.m_images[0]].m_center;
   unitize(ray);
@@ -659,7 +656,7 @@ void CpatchOrganizerS::setScales(Patch::Cpatch &patch) const {
   patch.m_dscale /= inum - 1;
   patch.m_dscale  = unit2 / patch.m_dscale;
 
-  patch.m_ascale = atan(patch.m_dscale / (unit * m_fm.m_wsize / 2.0f));
+  patch.m_ascale  = atan(patch.m_dscale / (unit * m_fm.m_wsize / 2.0f));
 }
 
 // write out results

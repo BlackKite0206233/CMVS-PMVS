@@ -199,7 +199,7 @@ void Soption::initVisdata(void) {
   if (m_useVisData == 0) {
     const int tnum = (int)m_timages.size();
     const int onum = (int)m_oimages.size();
-    const int num = tnum + onum;
+    const int num  = tnum + onum;
     m_visdata.resize(num);
     m_visdata2.resize(num);
     for (int y = 0; y < num; ++y) {

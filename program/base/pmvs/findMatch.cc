@@ -115,27 +115,27 @@ void CfindMatch::init(const Soption &option) {
   m_epThreshold = 2.0f;
 }
 
-int CfindMatch::insideBimages(const Vec4f &coord) const {
+bool CfindMatch::insideBimages(const Vec4f &coord) const {
   for (int i = 0; i < (int)m_bindexes.size(); ++i) {
     const int index = m_bindexes[i];
     const Vec3f icoord = m_pss.project(index, coord, m_level);
     if (icoord[0] < 0.0 || m_pss.getWidth(index, m_level)  - 1 < icoord[0] ||
         icoord[1] < 0.0 || m_pss.getHeight(index, m_level) - 1 < icoord[1])
-      return 0;
+      return false;
   }
-  return 1;
+  return true;
 }
 
-int CfindMatch::isNeighbor(const Patch::Cpatch &lhs, const Patch::Cpatch &rhs, const float neighborThreshold) const {
+bool CfindMatch::isNeighbor(const Patch::Cpatch &lhs, const Patch::Cpatch &rhs, const float neighborThreshold) const {
   const float hunit = (m_optim.getUnit(lhs.m_images[0], lhs.m_coord) +
                        m_optim.getUnit(rhs.m_images[0], rhs.m_coord)) /
                       2.0 * m_csize;
   return isNeighbor(lhs, rhs, hunit, neighborThreshold);
 }
 
-int CfindMatch::isNeighbor(const Patch::Cpatch &lhs, const Patch::Cpatch &rhs, const float hunit, const float neighborThreshold) const {
+bool CfindMatch::isNeighbor(const Patch::Cpatch &lhs, const Patch::Cpatch &rhs, const float hunit, const float neighborThreshold) const {
   if (lhs.m_normal * rhs.m_normal < cos(120.0 * M_PI / 180.0))
-    return 0;
+    return false;
   const Vec4f diff = rhs.m_coord - lhs.m_coord;
 
   const float vunit = lhs.m_dscale + rhs.m_dscale;
@@ -151,15 +151,12 @@ int CfindMatch::isNeighbor(const Patch::Cpatch &lhs, const Patch::Cpatch &rhs, c
   if (1.0 < hsize)
     ftmp /= min(2.0f, hsize);
 
-  if (ftmp < neighborThreshold)
-    return 1;
-  else
-    return 0;
+  return ftmp < neighborThreshold;
 }
 
-int CfindMatch::isNeighborRadius(const Patch::Cpatch &lhs, const Patch::Cpatch &rhs, const float hunit, const float neighborThreshold, const float radius) const {
+bool CfindMatch::isNeighborRadius(const Patch::Cpatch &lhs, const Patch::Cpatch &rhs, const float hunit, const float neighborThreshold, const float radius) const {
   if (lhs.m_normal * rhs.m_normal < cos(120.0 * M_PI / 180.0))
-    return 0;
+    return false;
   const Vec4f diff = rhs.m_coord - lhs.m_coord;
 
   const float vunit = lhs.m_dscale + rhs.m_dscale;
@@ -175,15 +172,12 @@ int CfindMatch::isNeighborRadius(const Patch::Cpatch &lhs, const Patch::Cpatch &
 
   // radius check
   if (radius / hunit < hsize)
-    return 0;
+    return false;
 
   if (1.0 < hsize)
     ftmp /= min(2.0f, hsize);
 
-  if (ftmp < neighborThreshold)
-    return 1;
-  else
-    return 0;
+  return ftmp < neighborThreshold;
 }
 
 void CfindMatch::run(void) {

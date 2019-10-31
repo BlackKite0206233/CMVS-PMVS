@@ -30,16 +30,16 @@ public:
   // Optimization
   //-----------------------------------------------------------------
 
-  int preProcess(Patch::Cpatch &patch, const int id, const int seed);
+  bool preProcess(Patch::Cpatch &patch, const int id, const int seed);
   void refinePatch(Patch::Cpatch &patch, const int id, const int time);
 
   bool refinePatchBFGS(Patch::Cpatch &patch, const int id, const int time, const int ncc);
 
-  int postProcess(Patch::Cpatch &patch, const int id, const int seed);
+  bool postProcess(Patch::Cpatch &patch, const int id, const int seed);
 
   void setRefImage(Patch::Cpatch &patch, const int id);
 
-  int check(Patch::Cpatch &patch);
+  bool check(Patch::Cpatch &patch);
 
   std::vector<int> m_status;
 
@@ -50,20 +50,20 @@ protected:
   void constraintImages(Patch::Cpatch &patch, const float nccThreshold, const int id);
   void setRefConstraintImages(Patch::Cpatch &patch, const float nccThreshold, const int id);
 
-  void setINCCs(const Patch::Cpatch &patch, std::vector<float> &nccs, const std::vector<int> &indexes, const int id, const int robust);
+  void setINCCs(const Patch::Cpatch &patch, std::vector<float> &nccs, const std::vector<int> &indexes, const int id, const bool robust);
 
-  void setINCCs(const Patch::Cpatch &patch, std::vector<std::vector<float>> &nccs, const std::vector<int> &indexes, const int id, const int robust);
+  void setINCCs(const Patch::Cpatch &patch, std::vector<std::vector<float>> &nccs, const std::vector<int> &indexes, const int id, const bool robust);
 
-  int grabTex(const Vec4f &coord, const Vec4f &pxaxis, const Vec4f &pyaxis, const Vec4f &pzaxis, const int index, const int size, std::vector<float> &tex) const;
+  bool grabTex(const Vec4f &coord, const Vec4f &pxaxis, const Vec4f &pyaxis, const Vec4f &pzaxis, const int index, const int size, std::vector<float> &tex) const;
 
-  int grabSafe(const int index, const int size, const Vec3f &center, const Vec3f &dx, const Vec3f &dy, const int level) const;
+  bool grabSafe(const int index, const int size, const Vec3f &center, const Vec3f &dx, const Vec3f &dy, const int level) const;
 
   /*
   double computeINCC(const Vec4f& coord, const Vec4f& normal,
                      const std::vector<int>& indexes, const int id,
                      const int robust);
   */
-  double computeINCC(const Vec4f &coord, const Vec4f &normal, const std::vector<int> &indexes, const Vec4f &pxaxis, const Vec4f &pyaxis, const int id, const int robust);
+  double computeINCC(const Vec4f &coord, const Vec4f &normal, const std::vector<int> &indexes, const Vec4f &pxaxis, const Vec4f &pyaxis, const int id, const bool robust);
 
 public:
   static void normalize(std::vector<float> &tex);
@@ -88,7 +88,7 @@ protected:
 public:
   void setWeightsT(const Patch::Cpatch &patch, const int id);
 
-  double computeINCC(const Vec4f &coord, const Vec4f &normal, const std::vector<int> &indexes, const int id, const int robust);
+  double computeINCC(const Vec4f &coord, const Vec4f &normal, const std::vector<int> &indexes, const int id, const bool robust);
   void getPAxes(const int index, const Vec4f &coord, const Vec4f &normal, Vec4f &pxaxis, Vec4f &pyaxis) const;
 
   static inline float robustincc(const float rhs) {

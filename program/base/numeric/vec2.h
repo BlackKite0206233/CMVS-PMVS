@@ -167,29 +167,29 @@ template <class T> bool predVec21(const TVec2<T> &lhs, const TVec2<T> &rhs) {
   return lhs[1] < rhs[1];
 };
 
-template <class T> int isOverlapUnsorted(const TVec2<T> &lhs, const TVec2<T> &rhs, TVec2<T> &intersect) {
+template <class T> bool isOverlapUnsorted(const TVec2<T> &lhs, const TVec2<T> &rhs, TVec2<T> &intersect) {
   TVec2<T> lhs2(min(lhs[0], lhs[1]), max(lhs[0], lhs[1]));
   TVec2<T> rhs2(min(rhs[0], rhs[1]), max(rhs[0], rhs[1]));
   return isOverlap(lhs2, rhs2, intersect);
 }
 
-template <class T> int isOverlap(const TVec2<T> &lhs, const TVec2<T> &rhs, TVec2<T> &intersect) {
+template <class T> bool isOverlap(const TVec2<T> &lhs, const TVec2<T> &rhs, TVec2<T> &intersect) {
   if (lhs[1] <= rhs[0] || rhs[1] <= lhs[0])
-    return 0;
+    return false;
   else {
     intersect[0] = max(lhs[0], rhs[0]);
     intersect[1] = min(lhs[1], rhs[1]);
-    return 1;
+    return true;
   }
 }
 
-template <class T> int overlap(const TVec2<T> &lhs, const TVec2<T> &rhs, TVec2<T> &intersect) {
+template <class T> bool overlap(const TVec2<T> &lhs, const TVec2<T> &rhs, TVec2<T> &intersect) {
   if (lhs[1] <= rhs[0] || rhs[1] <= lhs[0])
-    return 0;
+    return false;
   else {
     intersect[0] = max(lhs[0], rhs[0]);
     intersect[1] = min(lhs[1], rhs[1]);
-    return 1;
+    return true;
   }
 }
 
@@ -199,19 +199,13 @@ typedef TVec2<int>    Vec2i;
 
 template <class T> struct Svec2cmp {
   bool operator()(const TVec2<T> &lhs, const TVec2<T> &rhs) const {
-    if (lhs[0] < rhs[0] || (lhs[0] == rhs[0] && lhs[1] < rhs[1]))
-      return true;
-    else
-      return false;
+    return lhs[0] < rhs[0] || (lhs[0] == rhs[0] && lhs[1] < rhs[1]);
   }
 };
 
 template <class T> struct Svec2icmp {
   bool operator()(const TVec2<T> &lhs, const TVec2<T> &rhs) const {
-    if (lhs[0] > rhs[0] || (lhs[0] == rhs[0] && lhs[1] > rhs[1]))
-      return true;
-    else
-      return false;
+    return lhs[0] > rhs[0] || (lhs[0] == rhs[0] && lhs[1] > rhs[1]);
   }
 };
 
@@ -222,7 +216,7 @@ template <class T> T cross(const TVec2<T> &lhs, const TVec2<T> &rhs) {
 // Check if 2d line segments p0p1 and q0q1 intersect or not. One
 // exception is that when they share a corner (but lines are not
 // overlapping), we consider them to be not intersecting.
-template <class T> T isIntersect(const TVec2<T> &p0, const TVec2<T> &p1, const TVec2<T> &q0, const TVec2<T> &q1) {
+template <class T> bool isIntersect(const TVec2<T> &p0, const TVec2<T> &p1, const TVec2<T> &q0, const TVec2<T> &q1) {
   const TVec2<T> p0q0 = p0 - q0;
   const TVec2<T> p0p1 = p0 - p1;
   const TVec2<T> p0q1 = p0 - q1;
@@ -241,7 +235,7 @@ template <class T> T isIntersect(const TVec2<T> &p0, const TVec2<T> &p1, const T
   const T itmp3 = cross(q0q1, q0p1);
 
   // First check if all the four points are colinear
-  if (itmp0 == 0 && itmp1 == 0) {
+  if (!itmp0 && !itmp1) {
     /*
     if (itmp2 != 0 || itmp3 != 0) {
       std::cerr << "Error " << std::endl;      exit (1);
@@ -254,16 +248,13 @@ template <class T> T isIntersect(const TVec2<T> &p0, const TVec2<T> &p1, const T
     const T v_q1 = p0q0 * p0q1;
 
     TVec2<T> intersect;
-    if (isOverlapUnsorted(TVec2<T>(v_p0, v_p1), TVec2<T>(v_q0, v_q1), intersect))
-      return 1;
-    else
-      return 0;
+    return isOverlapUnsorted(TVec2<T>(v_p0, v_p1), TVec2<T>(v_q0, v_q1), intersect);
   }
 
   //======================================================================
   // Since they are not colinear, if they share a corner, they do not intersect
   if (p0 == q0 || p0 == q1 || p1 == q0 || p1 == q1)
-    return 0;
+    return false;
 
   const TVec2<T> p1q0 = p1 - q0;
   const TVec2<T> p1q1 = p1 - q1;
@@ -272,22 +263,22 @@ template <class T> T isIntersect(const TVec2<T> &p0, const TVec2<T> &p1, const T
   // Next check if one point is on another line
   // Check if q0 is on p0-p1
   if (itmp0 == 0 && p0q0 * p1q0 < 0)
-    return 1;
+    return true;
   // Check if q1 is on p0-p1
   if (itmp1 == 0 && p0q1 * p1q1 < 0)
-    return 1;
+    return true;
   // Check if p0 is on q0-q1
   if (itmp2 == 0 && q0p0 * q1p0 < 0)
-    return 1;
+    return true;
   // Check if p1 is on q0-q1
   if (itmp3 == 0 && q0p1 * q1p1 < 0)
-    return 1;
+    return true;
 
   // Now we know that there is no colinearlity
   if (itmp0 * itmp1 < 0 || itmp2 * itmp3 < 0)
-    return 0;
+    return false;
 
-  return 1;
+  return true;
 
   /*
   //======================================================================

@@ -35,9 +35,7 @@ protected:
 
   std::vector<std::vector<float>> m_response;
 
-  void init(const std::vector<unsigned char> &image,
-            const std::vector<unsigned char> &mask,
-            const std::vector<unsigned char> &edge);
+  void init(const std::vector<unsigned char> &image, const std::vector<unsigned char> &mask, const std::vector<unsigned char> &edge);
 
   void setDerivatives(void);
   void preprocess(void);

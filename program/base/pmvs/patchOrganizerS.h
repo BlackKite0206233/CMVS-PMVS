@@ -20,7 +20,7 @@ public:
   CpatchOrganizerS(CfindMatch &findMatch);
 
   void init(void);
-  void collectPatches(const int target = 0);
+  void collectPatches(const bool target = false);
   void collectPatches(std::priority_queue<Patch::Ppatch, std::vector<Patch::Ppatch>, P_compare> &pqpatches);
 
   void collectPatches(const int index, std::priority_queue<Patch::Ppatch, std::vector<Patch::Ppatch>, P_compare> &pqpatches);
@@ -45,10 +45,11 @@ public:
   void setVImagesVGrids(Patch::Cpatch &patch);
   void updateDepthMaps(Patch::Ppatch &ppatch);
 
-  int isVisible(const Patch::Cpatch &patch, const int image, const int &ix, const int &iy, const float strict, const int lock);
-  int isVisible0(const Patch::Cpatch &patch, const int image, int &ix, int &iy, const float strict, const int lock);
+  bool isVisible(const  Patch::Cpatch &patch, const int image, const int &ix, const int &iy, const float strict, const bool lock);
+  bool isVisible0(const Patch::Cpatch &patch, const int image,       int &ix,       int &iy, const float strict, const bool lock);
 
-  void findNeighbors(const Patch::Cpatch &patch, std::vector<Patch::Ppatch> &neighbors, const int lock, const float scale = 1.0f, const int margin = 1, const int skipvis = 0);
+  void findNeighbors(const Patch::Cpatch &patch, std::vector<Patch::Ppatch> &neighbors, 
+                     const bool lock, const float scale = 1.0f, const int margin = 1, const bool skipvis = false);
 
   void setScales(Patch::Cpatch &patch) const;
 

@@ -209,31 +209,19 @@ template <class T> inline TVec3<T> proj(const TVec4<T> &v) {
 };
 
 template <class T> bool predVec40(const TVec4<T> &lhs, const TVec4<T> &rhs) {
-  if (lhs[0] < rhs[0])
-    return true;
-  else
-    return false;
+  return lhs[0] < rhs[0];
 };
 
 template <class T> bool predVec41(const TVec4<T> &lhs, const TVec4<T> &rhs) {
-  if (lhs[1] < rhs[1])
-    return true;
-  else
-    return false;
+  return lhs[1] < rhs[1];
 };
 
 template <class T> bool predVec42(const TVec4<T> &lhs, const TVec4<T> &rhs) {
-  if (lhs[2] < rhs[2])
-    return true;
-  else
-    return false;
+  return lhs[2] < rhs[2];
 };
 
 template <class T> bool predVec43(const TVec4<T> &lhs, const TVec4<T> &rhs) {
-  if (lhs[3] < rhs[3])
-    return true;
-  else
-    return false;
+  return lhs[3] < rhs[3];
 };
 
 typedef TVec4<double> Vec4;

@@ -11,7 +11,7 @@ public:
   CphotoSetS(void);
   virtual ~CphotoSetS();
 
-  void init(const std::vector<int> &images, const std::string prefix, const int maxLevel, const int size, const int alloc);
+  void init(const std::vector<int> &images, const std::string prefix, const int maxLevel, const int size, const bool alloc);
 
   // grabTex given 2D sampling information
   void grabTex(const int index, const int level, const Vec2f &icoord, const Vec2f &xaxis, const Vec2f &yaxis, std::vector<Vec3f> &tex, const int normalizef = 1) const;
@@ -38,10 +38,10 @@ public:
   inline Vec3f getColor(const int index, const float fx, const float fy, const int level) const;
   inline Vec3f getColor(const int index, const   int ix, const   int iy, const int level) const;
 
-  inline int getMask(const Vec4f &coord, const int level) const;
-  inline int getMask(const Vec4f &coord, const int index, const int level) const;
-  inline int getMask(const int index, const float fx, const float fy, const int level) const;
-  inline int getMask(const int index, const   int ix, const   int iy, const int level) const;
+  inline bool getMask(const Vec4f &coord, const int level) const;
+  inline int  getMask(const Vec4f &coord, const int index, const int level) const;
+  inline int  getMask(const int index, const float fx, const float fy, const int level) const;
+  inline int  getMask(const int index, const   int ix, const   int iy, const int level) const;
 
   inline int getEdge(const Vec4f &coord, const int index, const int level) const;
   inline int getEdge(const int index, const float fx, const float fy, const int level) const;
@@ -49,7 +49,7 @@ public:
 
   static float incc(const std::vector<std::vector<Vec3f>> &texs, const std::vector<float> &weights);
 
-  int checkAngles(const Vec4f &coord, const std::vector<int> &indexes, const float minAngle, const float maxAngle, const int tau) const;
+  bool checkAngles(const Vec4f &coord, const std::vector<int> &indexes, const float minAngle, const float maxAngle, const int tau) const;
 
   void getMinMaxAngles(const Vec4f &coord, const std::vector<int> &indexes, float &minAngle, float &maxAngle) const;
 
@@ -109,11 +109,11 @@ Vec3f CphotoSetS::getColor(const int index, const int ix, const int iy, const in
   return m_photos[index].Image::Cimage::getColor(ix, iy, level);
 };
 
-int CphotoSetS::getMask(const Vec4f &coord, const int level) const {
+bool CphotoSetS::getMask(const Vec4f &coord, const int level) const {
   for (int index = 0; index < m_num; ++index)
-    if (getMask(coord, index, level) == 0)
-      return 0;
-  return 1;
+    if (!getMask(coord, index, level))
+      return false;
+  return true;
 };
 
 int CphotoSetS::getMask(const Vec4f &coord, const int index, const int level) const {

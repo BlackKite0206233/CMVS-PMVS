@@ -202,7 +202,7 @@ float Cexpand::computeRadius(const Patch::Cpatch &patch) {
   return (*(vftmp.begin() + minnum - 1)) * m_fm.m_csize;
 }
 
-int Cexpand::expandSub(const Ppatch &orgppatch, const int id, const Vec4f &canCoord) {
+bool Cexpand::expandSub(const Ppatch &orgppatch, const int id, const Vec4f &canCoord) {
   // Choose the closest one
   Cpatch patch;
   patch.m_coord  = canCoord;
@@ -211,30 +211,29 @@ int Cexpand::expandSub(const Ppatch &orgppatch, const int id, const Vec4f &canCo
 
   m_fm.m_pos.setGridsImages(patch, orgppatch->m_images);
   if (patch.m_images.empty())
-    return 1;
+    return true;
 
   //-----------------------------------------------------------------
   // Check bimages and mask. Then, initialize possible visible images
-  if (m_fm.m_pss.getMask(patch.m_coord, m_fm.m_level) == 0 ||
-      m_fm.insideBimages(patch.m_coord) == 0)
-    return 1;
+  if (!m_fm.m_pss.getMask(patch.m_coord, m_fm.m_level) || !m_fm.insideBimages(patch.m_coord))
+    return true;
 
   // Check m_counts and maybe m_pgrids
-  const int flag = checkCounts(patch);
+  const bool flag = checkCounts(patch);
   if (flag)
-    return 1;
+    return true;
 
   // Check edge
   m_fm.m_optim.removeImagesEdge(patch);
   if (patch.m_images.empty())
-    return 1;
+    return true;
 
   ++m_ecounts[id];
   //-----------------------------------------------------------------
   // Preprocess
   if (m_fm.m_optim.preProcess(patch, id, 0)) {
     ++m_fcounts0[id];
-    return 1;
+    return true;
   }
 
   //-----------------------------------------------------------------
@@ -243,7 +242,7 @@ int Cexpand::expandSub(const Ppatch &orgppatch, const int id, const Vec4f &canCo
   //-----------------------------------------------------------------
   if (m_fm.m_optim.postProcess(patch, id, 0)) {
     ++m_fcounts1[id];
-    return 1;
+    return true;
   }
   ++m_pcounts[id];
 
@@ -262,10 +261,10 @@ int Cexpand::expandSub(const Ppatch &orgppatch, const int id, const Vec4f &canCo
     mtx_unlock(&m_fm.m_lock);
   }
 
-  return 0;
+  return false;
 }
 
-int Cexpand::checkCounts(Patch::Cpatch &patch) {
+bool Cexpand::checkCounts(Patch::Cpatch &patch) {
   int full  = 0;
   int empty = 0;
 
@@ -317,19 +316,13 @@ int Cexpand::checkCounts(Patch::Cpatch &patch) {
 
   // First expansion is expensive and make the condition strict
   if (m_fm.m_depth <= 1) {
-    if (empty < m_fm.m_minImageNumThreshold && full != 0)
-      return 1;
-    else
-      return 0;
+    return empty < m_fm.m_minImageNumThreshold     && full != 0;
   } else {
-    if (empty < m_fm.m_minImageNumThreshold - 1 && full != 0)
-      return 1;
-    else
-      return 0;
+    return empty < m_fm.m_minImageNumThreshold - 1 && full != 0;
   }
 }
 
-int Cexpand::updateCounts(const Cpatch &patch) {
+bool Cexpand::updateCounts(const Cpatch &patch) {
   // Use m_images and m_vimages. Loosen when to set add = 1
   int full  = 0;
   int empty = 0;
@@ -407,8 +400,5 @@ int Cexpand::updateCounts(const Cpatch &patch) {
     }
   }
 
-  if (empty != 0)
-    return 1;
-  else
-    return 0;
+  return empty;
 }

@@ -11,7 +11,7 @@ CphotoSetS::CphotoSetS(void) {}
 
 CphotoSetS::~CphotoSetS() {}
 
-void CphotoSetS::init(const std::vector<int> &images, const std::string prefix, const int maxLevel, const int size, const int alloc) {
+void CphotoSetS::init(const std::vector<int> &images, const std::string prefix, const int maxLevel, const int size, const bool alloc) {
   m_images = images;
   m_num = (int)images.size();
 
@@ -181,7 +181,7 @@ void CphotoSetS::getMinMaxAngles(const Vec4f &coord, const std::vector<int> &ind
   }
 }
 
-int CphotoSetS::checkAngles(const Vec4f &coord, const std::vector<int> &indexes, const float minAngle, const float maxAngle, const int num) const {
+bool CphotoSetS::checkAngles(const Vec4f &coord, const std::vector<int> &indexes, const float minAngle, const float maxAngle, const int num) const {
   int count = 0;
 
   vector<Vec4f> rays;
@@ -202,10 +202,7 @@ int CphotoSetS::checkAngles(const Vec4f &coord, const std::vector<int> &indexes,
   }
 
   // if (count < num * (num - 1) / 2)
-  if (count < 1)
-    return 1;
-  else
-    return 0;
+  return count < 1;
 }
 
 float CphotoSetS::computeDepth(const int index, const Vec4f &coord) const {
@@ -229,7 +226,7 @@ void CphotoSetS::setDistances(void) {
       }
     }
   }
-  if (denom == 0)
+  if (!denom)
     return;
 
   avedis /= denom;

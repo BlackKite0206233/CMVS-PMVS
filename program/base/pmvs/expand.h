@@ -20,11 +20,11 @@ public:
   float computeRadius(const Patch::Cpatch &patch);
 
 protected:
-  int expandSub(const Patch::Ppatch &orgppatch, const int id, const Vec4f &canCoord);
+  bool expandSub(const Patch::Ppatch &orgppatch, const int id, const Vec4f &canCoord);
 
-  int updateCounts(const Patch::Cpatch &patch);
+  bool updateCounts(const Patch::Cpatch &patch);
 
-  int checkCounts(Patch::Cpatch &patch);
+  bool checkCounts(Patch::Cpatch &patch);
 
   void findEmptyBlocks(const Patch::Ppatch &ppatch, std::vector<std::vector<Vec4f>> &canCoords);
 

@@ -103,7 +103,7 @@ void Coptim::collectImages(const int index, std::vector<int> &indexes) const {
     indexes.push_back((int)candidates[i][1]);
 }
 
-int Coptim::preProcess(Cpatch &patch, const int id, const int seed) {
+bool Coptim::preProcess(Cpatch &patch, const int id, const int seed) {
   addImages(patch);
 
   // Here define reference images, and sort images.
@@ -121,16 +121,14 @@ int Coptim::preProcess(Cpatch &patch, const int id, const int seed) {
 
   // Check minimum number of images
   if ((int)patch.m_images.size() < m_fm.m_minImageNumThreshold)
-    return 1;
+    return true;
 
-  const int flag = m_fm.m_pss.checkAngles(patch.m_coord, patch.m_images, m_fm.m_maxAngleThreshold, m_fm.m_angleThreshold1, m_fm.m_minImageNumThreshold);
-
-  if (flag) {
+  if (m_fm.m_pss.checkAngles(patch.m_coord, patch.m_images, m_fm.m_maxAngleThreshold, m_fm.m_angleThreshold1, m_fm.m_minImageNumThreshold)) {
     patch.m_images.clear();
-    return 1;
+    return true;
   }
 
-  return 0;
+  return false;
 }
 
 void Coptim::filterImagesByAngle(Cpatch &patch) {
@@ -157,12 +155,12 @@ void Coptim::filterImagesByAngle(Cpatch &patch) {
   patch.m_images.swap(newindexes);
 }
 
-int Coptim::postProcess(Cpatch &patch, const int id, const int seed) {
+bool Coptim::postProcess(Cpatch &patch, const int id, const int seed) {
   if ((int)patch.m_images.size() < m_fm.m_minImageNumThreshold)
-    return 1;
+    return true;
 
-  if (m_fm.m_pss.getMask(patch.m_coord, m_fm.m_level) == 0 || m_fm.insideBimages(patch.m_coord) == 0)
-    return 1;
+  if (!m_fm.m_pss.getMask(patch.m_coord, m_fm.m_level) || !m_fm.insideBimages(patch.m_coord))
+    return true;
 
   addImages(patch);
 
@@ -170,7 +168,7 @@ int Coptim::postProcess(Cpatch &patch, const int id, const int seed) {
   filterImagesByAngle(patch);
 
   if ((int)patch.m_images.size() < m_fm.m_minImageNumThreshold)
-    return 1;
+    return true;
 
   m_fm.m_pos.setGrids(patch);
 
@@ -178,7 +176,7 @@ int Coptim::postProcess(Cpatch &patch, const int id, const int seed) {
   constraintImages(patch, m_fm.m_nccThreshold, id);
 
   if ((int)patch.m_images.size() < m_fm.m_minImageNumThreshold)
-    return 1;
+    return true;
 
   m_fm.m_pos.setGrids(patch);
 
@@ -198,9 +196,9 @@ int Coptim::postProcess(Cpatch &patch, const int id, const int seed) {
     m_fm.m_pos.setVImagesVGrids(patch);
 
     if (2 <= m_fm.m_depth && check(patch))
-      return 1;
+      return true;
   }
-  return 0;
+  return false;
 }
 
 void Coptim::constraintImages(Cpatch &patch, const float nccThreshold, const int id) {
@@ -376,13 +374,13 @@ void Coptim::sortImages(Cpatch &patch) const {
   }
 }
 
-int Coptim::check(Cpatch &patch) {
+bool Coptim::check(Cpatch &patch) {
   const float gain = m_fm.m_filter.computeGain(patch, 1);
   patch.m_tmp = gain;
 
   if (gain < 0.0) {
     patch.m_images.clear();
-    return 1;
+    return true;
   }
 
   {
@@ -393,11 +391,11 @@ int Coptim::check(Cpatch &patch) {
         // if (8 < (int)neighbors.size() &&
         m_fm.m_filter.filterQuad(patch, neighbors)) {
       patch.m_images.clear();
-      return 1;
+      return true;
     }
   }
 
-  return 0;
+  return false;
 }
 
 void Coptim::removeImagesEdge(Patch::Cpatch &patch) const {
@@ -437,15 +435,13 @@ void Coptim::addImages(Patch::Cpatch &patch) const {
     }
 
     const Vec3f icoord = m_fm.m_pss.project(*bimage, patch.m_coord, m_fm.m_level);
-    if (icoord[0] < 0.0f ||
-        m_fm.m_pss.getWidth(*bimage, m_fm.m_level) - 1 <= icoord[0] ||
-        icoord[1] < 0.0f ||
-        m_fm.m_pss.getHeight(*bimage, m_fm.m_level) - 1 <= icoord[1]) {
+    if (icoord[0] < 0.0f || m_fm.m_pss.getWidth(*bimage,  m_fm.m_level) - 1 <= icoord[0] ||
+        icoord[1] < 0.0f || m_fm.m_pss.getHeight(*bimage, m_fm.m_level) - 1 <= icoord[1]) {
       ++bimage;
       continue;
     }
 
-    if (m_fm.m_pss.getEdge(patch.m_coord, *bimage, m_fm.m_level) == 0) {
+    if (!m_fm.m_pss.getEdge(patch.m_coord, *bimage, m_fm.m_level)) {
       ++bimage;
       continue;
     }
@@ -546,9 +542,7 @@ double Coptim::my_f(unsigned n, const double *x, double *grad, void *my_func_dat
   const int mininum = min(m_one->m_fm.m_minImageNumThreshold, size);
 
   for (int i = 0; i < size; ++i) {
-    int flag = m_one->grabTex(coord, pxaxis, pyaxis, normal, m_one->m_indexesT[id][i], m_one->m_fm.m_wsize, m_one->m_texsT[id][i]);
-
-    if (flag == 0)
+    if (!m_one->grabTex(coord, pxaxis, pyaxis, normal, m_one->m_indexesT[id][i], m_one->m_fm.m_wsize, m_one->m_texsT[id][i]))
       m_one->normalize(m_one->m_texsT[id][i]);
   }
 
@@ -718,7 +712,7 @@ void Coptim::decode(Vec4f &coord, const double *const vect, const int id) const 
   coord = m_centersT[id] + m_dscalesT[id] * vect[0] * m_raysT[id];
 }
 
-void Coptim::setINCCs(const Patch::Cpatch &patch, std::vector<float> &inccs, const std::vector<int> &indexes, const int id, const int robust) {
+void Coptim::setINCCs(const Patch::Cpatch &patch, std::vector<float> &inccs, const std::vector<int> &indexes, const int id, const bool robust) {
   const int index = indexes[0];
   Vec4f pxaxis, pyaxis;
   getPAxes(index, patch.m_coord, patch.m_normal, pxaxis, pyaxis);
@@ -727,10 +721,8 @@ void Coptim::setINCCs(const Patch::Cpatch &patch, std::vector<float> &inccs, con
 
   const int size = (int)indexes.size();
   for (int i = 0; i < size; ++i) {
-    const int flag = grabTex(patch.m_coord, pxaxis, pyaxis, patch.m_normal, indexes[i], m_fm.m_wsize, texs[i]);
-    if (flag == 0) {
+    if (!grabTex(patch.m_coord, pxaxis, pyaxis, patch.m_normal, indexes[i], m_fm.m_wsize, texs[i])) 
       normalize(texs[i]);
-    }
   }
 
   inccs.resize(size);
@@ -740,10 +732,10 @@ void Coptim::setINCCs(const Patch::Cpatch &patch, std::vector<float> &inccs, con
   }
 
   for (int i = 0; i < size; ++i) {
-    if (i == 0)
+    if (!i)
       inccs[i] = 0.0f;
     else if (!texs[i].empty()) {
-      if (robust == 0)
+      if (!robust)
         inccs[i] = 1.0f - dot(texs[0], texs[i]);
       else
         inccs[i] = robustincc(1.0f - dot(texs[0], texs[i]));
@@ -752,7 +744,7 @@ void Coptim::setINCCs(const Patch::Cpatch &patch, std::vector<float> &inccs, con
   }
 }
 
-void Coptim::setINCCs(const Patch::Cpatch &patch, std::vector<std::vector<float>> &inccs, const std::vector<int> &indexes, const int id, const int robust) {
+void Coptim::setINCCs(const Patch::Cpatch &patch, std::vector<std::vector<float>> &inccs, const std::vector<int> &indexes, const int id, const bool robust) {
   const int index = indexes[0];
   Vec4f pxaxis, pyaxis;
   getPAxes(index, patch.m_coord, patch.m_normal, pxaxis, pyaxis);
@@ -761,9 +753,7 @@ void Coptim::setINCCs(const Patch::Cpatch &patch, std::vector<std::vector<float>
 
   const int size = (int)indexes.size();
   for (int i = 0; i < size; ++i) {
-    const int flag = grabTex(patch.m_coord, pxaxis, pyaxis, patch.m_normal, indexes[i], m_fm.m_wsize, texs[i]);
-
-    if (flag == 0)
+    if (!grabTex(patch.m_coord, pxaxis, pyaxis, patch.m_normal, indexes[i], m_fm.m_wsize, texs[i]))
       normalize(texs[i]);
   }
 
@@ -775,7 +765,7 @@ void Coptim::setINCCs(const Patch::Cpatch &patch, std::vector<std::vector<float>
     inccs[i][i] = 0.0f;
     for (int j = i + 1; j < size; ++j) {
       if (!texs[i].empty() && !texs[j].empty()) {
-        if (robust == 0)
+        if (!robust)
           inccs[j][i] = inccs[i][j] = 1.0f - dot(texs[i], texs[j]);
         else
           inccs[j][i] = inccs[i][j] = robustincc(1.0f - dot(texs[i], texs[j]));
@@ -785,7 +775,7 @@ void Coptim::setINCCs(const Patch::Cpatch &patch, std::vector<std::vector<float>
   }
 }
 
-int Coptim::grabSafe(const int index, const int size, const Vec3f &center, const Vec3f &dx, const Vec3f &dy, const int level) const {
+bool Coptim::grabSafe(const int index, const int size, const Vec3f &center, const Vec3f &dx, const Vec3f &dy, const int level) const {
   const int margin = size / 2;
 
   const Vec3f tl = center - dx * margin - dy * margin;
@@ -802,12 +792,10 @@ int Coptim::grabSafe(const int index, const int size, const Vec3f &center, const
   // 1 should be enough
   const int margin2 = 3;
   // ??? may need to change if we change interpolation method
-  if (minx < margin2 ||
-      m_fm.m_pss.getWidth(index,  level) - 1 - margin2 <= maxx ||
-      miny < margin2 ||
-      m_fm.m_pss.getHeight(index, level) - 1 - margin2 <= maxy)
-    return 0;
-  return 1;
+  if (minx < margin2 || m_fm.m_pss.getWidth(index,  level) - 1 - margin2 <= maxx ||
+      miny < margin2 || m_fm.m_pss.getHeight(index, level) - 1 - margin2 <= maxy)
+    return false;
+  return true;
 }
 
 // My own optimisaton
@@ -819,7 +807,7 @@ float MyPow2(int x) {
 
 static float Log2 = log(2.0f);
 
-int Coptim::grabTex(const Vec4f &coord, const Vec4f &pxaxis, const Vec4f &pyaxis, const Vec4f &pzaxis, const int index, const int size, std::vector<float> &tex) const {
+bool Coptim::grabTex(const Vec4f &coord, const Vec4f &pxaxis, const Vec4f &pyaxis, const Vec4f &pzaxis, const int index, const int size, std::vector<float> &tex) const {
   tex.clear();
 
   Vec4f ray = m_fm.m_pss.m_photos[index].m_center - coord;
@@ -853,8 +841,8 @@ int Coptim::grabTex(const Vec4f &coord, const Vec4f &pxaxis, const Vec4f &pyaxis
   dx     /= scale;
   dy     /= scale;
 
-  if (grabSafe(index, size, center, dx, dy, newlevel) == 0)
-    return 1;
+  if (!grabSafe(index, size, center, dx, dy, newlevel))
+    return true;
 
   Vec3f left = center - dx * margin - dy * margin;
 
@@ -872,10 +860,10 @@ int Coptim::grabTex(const Vec4f &coord, const Vec4f &pxaxis, const Vec4f &pyaxis
     }
   }
 
-  return 0;
+  return false;
 }
 
-double Coptim::computeINCC(const Vec4f &coord, const Vec4f &normal, const std::vector<int> &indexes, const int id, const int robust) {
+double Coptim::computeINCC(const Vec4f &coord, const Vec4f &normal, const std::vector<int> &indexes, const int id, const bool robust) {
   if ((int)indexes.size() < 2)
     return 2.0;
 
@@ -886,7 +874,7 @@ double Coptim::computeINCC(const Vec4f &coord, const Vec4f &normal, const std::v
   return computeINCC(coord, normal, indexes, pxaxis, pyaxis, id, robust);
 }
 
-double Coptim::computeINCC(const Vec4f &coord, const Vec4f &normal, const std::vector<int> &indexes, const Vec4f &pxaxis, const Vec4f &pyaxis, const int id, const int robust) {
+double Coptim::computeINCC(const Vec4f &coord, const Vec4f &normal, const std::vector<int> &indexes, const Vec4f &pxaxis, const Vec4f &pyaxis, const int id, const bool robust) {
   if ((int)indexes.size() < 2)
     return 2.0;
 
@@ -894,9 +882,7 @@ double Coptim::computeINCC(const Vec4f &coord, const Vec4f &normal, const std::v
   vector<vector<float>> &texs = m_texsT[id];
 
   for (int i = 0; i < size; ++i) {
-    int flag = grabTex(coord, pxaxis, pyaxis, normal, indexes[i], m_fm.m_wsize, texs[i]);
-
-    if (flag == 0)
+    if (!grabTex(coord, pxaxis, pyaxis, normal, indexes[i], m_fm.m_wsize, texs[i]))
       normalize(texs[i]);
   }
 
@@ -968,9 +954,7 @@ void Coptim::func(int m, int n, double *x, double *fvec, int *iflag, void *arg) 
 
   for (int i = 0; i < size; ++i) {
     int flag;
-    flag = grabTex(coord, pxaxis, pyaxis, normal, m_indexesT[id][i], m_fm.m_wsize, m_texsT[id][i]);
-
-    if (flag == 0)
+    if (!grabTex(coord, pxaxis, pyaxis, normal, m_indexesT[id][i], m_fm.m_wsize, m_texsT[id][i]))
       normalize(m_texsT[id][i]);
   }
 
@@ -1011,7 +995,7 @@ void Coptim::normalize(std::vector<std::vector<float>> &texs, const int size) {
   }
 
   // overall average
-  if (denom == 0)
+  if (!denom)
     return;
 
   ave /= denom;

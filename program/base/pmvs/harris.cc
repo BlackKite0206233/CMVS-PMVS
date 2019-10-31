@@ -4,9 +4,7 @@
 using namespace PMVS3;
 using namespace std;
 
-void Charris::init(const std::vector<unsigned char> &image,
-                   const std::vector<unsigned char> &mask,
-                   const std::vector<unsigned char> &edge) {
+void Charris::init(const std::vector<unsigned char> &image, const std::vector<unsigned char> &mask, const std::vector<unsigned char> &edge) {
   m_image.clear();
   m_image.resize(m_height);
   int count = 0;
@@ -66,7 +64,7 @@ void Charris::preprocess2(void) {
     m_dIdxdIdy[y].resize(m_width);
     for (int x = 0; x < m_width; ++x) {
       m_dIdxdIdx[y][x] = m_dIdydIdy[y][x] = m_dIdxdIdy[y][x] = 0.0;
-      if (!m_mask.empty() && m_mask[y][x] == 0)
+      if (!m_mask.empty() && !m_mask[y][x])
         continue;
 
       m_dIdxdIdx[y][x] += m_dIdx[y][x] * m_dIdx[y][x];
@@ -142,7 +140,7 @@ void Charris::setResponse(void) {
     m_response[y].resize(m_width);
     for (int x = 0; x < m_width; ++x) {
       m_response[y][x] = 0.0;
-      if (!m_mask.empty() && m_mask[y][x] == 0)
+      if (!m_mask.empty() && !m_mask[y][x])
         continue;
 
       const float D  = m_dIdxdIdx[y][x] * m_dIdydIdy[y][x] -

@@ -113,10 +113,7 @@ template <class T> inline TMat2<T> &TMat2<T>::operator/=(T s) {
 }
 
 template <class T> inline bool TMat2<T>::operator==(const TMat2<T> &m) const {
-  if (m_row[0] == m.m_row[0] && m_row[1] == m.m_row[1])
-    return true;
-  else
-    return false;
+  return m_row[0] == m.m_row[0] && m_row[1] == m.m_row[1];
 }
 
 template <class T> inline bool TMat2<T>::operator!=(const TMat2<T> &m) const {

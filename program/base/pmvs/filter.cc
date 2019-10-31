@@ -69,7 +69,7 @@ void Cfilter::filterOutside(void) {
     }
   }
 
-  if (denom == 0)
+  if (!denom)
     denom = 1;
   ave  /= denom;
   ave2 /= denom;
@@ -433,7 +433,7 @@ void Cfilter::filterNeighborThread(void) {
   */
 }
 
-int Cfilter::filterQuad(const Patch::Cpatch &patch, const std::vector<Ppatch> &neighbors) const {
+bool Cfilter::filterQuad(const Patch::Cpatch &patch, const std::vector<Ppatch> &neighbors) const {
   vector<vector<float>> A;
   vector<float> b, x;
 
@@ -494,10 +494,7 @@ int Cfilter::filterQuad(const Patch::Cpatch &patch, const std::vector<Ppatch> &n
 
   residual /= (nsize - 5);
 
-  if (residual < m_fm.m_quadThreshold)
-    return 0;
-  else
-    return 1;
+  return residual < m_fm.m_quadThreshold;
 }
 
 int Cfilter::filterNeighborThreadTmp(void *arg) {
@@ -616,10 +613,7 @@ void Cfilter::filterSmallGroups(void) {
   bite = size.begin();
   eite = size.end();
   while (bite != eite) {
-    if (*bite < threshold)
-      *bite = 0;
-    else
-      *bite = 1;
+    *bite = !(*bite < threshold);
     ++bite;
   }
 
@@ -635,7 +629,7 @@ void Cfilter::filterSmallGroups(void) {
       continue;
     }
 
-    if (size[*bite] == 0) {
+    if (!size[*bite]) {
       m_fm.m_pos.removePatch(*bpatch);
       count++;
     }
@@ -786,7 +780,7 @@ void Cfilter::setDepthMapsVGridsVPGridsAddPatchV(const int additive) {
     }
   }
 
-  if (additive == 0) {
+  if (!additive) {
     // initialization
     vector<Ppatch>::iterator bpatch = m_fm.m_pos.m_ppatches.begin();
     vector<Ppatch>::iterator epatch = m_fm.m_pos.m_ppatches.end();

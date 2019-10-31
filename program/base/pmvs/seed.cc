@@ -17,7 +17,7 @@ void Cseed::init(const std::vector<std::vector<Cpoint>> &points) {
 
   for (int index = 0; index < m_fm.m_num; ++index) {
     const int gheight = m_fm.m_pos.m_gheights[index];
-    const int gwidth = m_fm.m_pos.m_gwidths[index];
+    const int gwidth  = m_fm.m_pos.m_gwidths[index];
     m_ppoints[index].resize(gwidth * gheight);
   }
 
@@ -173,8 +173,7 @@ void Cseed::initialMatch(const int index, const int id) {
           const int flag = initialMatchSub(index, vcp[i]->m_itmp, id, patch);
           if (flag == 0) {
             ++count;
-            if (bestpatch.score(m_fm.m_nccThreshold) <
-                patch.score(m_fm.m_nccThreshold))
+            if (bestpatch.score(m_fm.m_nccThreshold) < patch.score(m_fm.m_nccThreshold))
               bestpatch = patch;
             if (m_fm.m_countThreshold0 <= count)
               break;
@@ -291,7 +290,7 @@ void Cseed::collectCandidates(const int index, const std::vector<int> &indexes, 
     if (m_fm.m_pss.m_photos[index].m_projection[m_fm.m_level][2] * vcp[i]->m_coord <= 0.0)
       continue;
 
-    if (m_fm.m_pss.getMask(vcp[i]->m_coord, m_fm.m_level) == 0 || m_fm.insideBimages(vcp[i]->m_coord) == 0)
+    if (!m_fm.m_pss.getMask(vcp[i]->m_coord, m_fm.m_level) || !m_fm.insideBimages(vcp[i]->m_coord))
       continue;
 
     //??? from the closest
@@ -304,24 +303,24 @@ void Cseed::collectCandidates(const int index, const std::vector<int> &indexes, 
   sort(vcp.begin(), vcp.end());
 }
 
-int Cseed::canAdd(const int index, const int x, const int y) {
+bool Cseed::canAdd(const int index, const int x, const int y) {
   if (!m_fm.m_pss.getMask(index, m_fm.m_csize * x, m_fm.m_csize * y, m_fm.m_level))
-    return 0;
+    return false;
 
   const int index2 = y * m_fm.m_pos.m_gwidths[index] + x;
 
   if (m_fm.m_tnum <= index)
-    return 1;
+    return true;
 
   // Check if m_pgrids already contains something
   if (!m_fm.m_pos.m_pgrids[index][index2].empty())
-    return 0;
+    return false;
 
   //??? critical
   if (m_fm.m_countThreshold2 <= m_fm.m_pos.m_counts[index][index2])
-    return 0;
+    return false;
 
-  return 1;
+  return true;
 }
 
 void Cseed::unproject(const int index0, const int index1, const Cpoint &p0, const Cpoint &p1, Vec4f &coord) const {
@@ -366,7 +365,7 @@ void Cseed::unproject(const int index0, const int index1, const Cpoint &p0, cons
 }
 
 // starting with (index, indexs), set visible images by looking at correlation.
-int Cseed::initialMatchSub(const int index0, const int index1, const int id, Cpatch &patch) {
+bool Cseed::initialMatchSub(const int index0, const int index1, const int id, Cpatch &patch) {
   //----------------------------------------------------------------------
   patch.m_images.clear();
   patch.m_images.push_back(index0);
@@ -378,7 +377,7 @@ int Cseed::initialMatchSub(const int index0, const int index1, const int id, Cpa
   // We know that patch.m_coord is inside bimages and inside mask
   if (m_fm.m_optim.preProcess(patch, id, 1)) {
     ++m_fcounts0[id];
-    return 1;
+    return true;
   }
 
   //----------------------------------------------------------------------
@@ -387,10 +386,10 @@ int Cseed::initialMatchSub(const int index0, const int index1, const int id, Cpa
   //----------------------------------------------------------------------
   if (m_fm.m_optim.postProcess(patch, id, 1)) {
     ++m_fcounts1[id];
-    return 1;
+    return true;
   }
 
   ++m_pcounts[id];
   //----------------------------------------------------------------------
-  return 0;
+  return false;
 }

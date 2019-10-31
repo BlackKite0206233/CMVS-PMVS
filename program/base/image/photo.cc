@@ -82,7 +82,7 @@ void Cphoto::normalize(std::vector<Vec3f> &tex) {
     tex[i] /= ave2;
 }
 
-void Cphoto::grabTex(const int level, const Vec2f &icoord, const Vec2f &xaxis, const Vec2f &yaxis, const int size, std::vector<Vec3f> &tex, const int normalizef) const {
+void Cphoto::grabTex(const int level, const Vec2f &icoord, const Vec2f &xaxis, const Vec2f &yaxis, const int size, std::vector<Vec3f> &tex, const bool normalizef) const {
   const int margin = size / 2;
 
   // Check boundary condition
@@ -108,10 +108,8 @@ void Cphoto::grabTex(const int level, const Vec2f &icoord, const Vec2f &xaxis, c
     normalize(tex);
 }
 
-void Cphoto::grabTex(const int level, const Vec4f &coord, const Vec4f &pxaxis,
-                     const Vec4f &pyaxis, const Vec4f &pzaxis, const int size,
-                     std::vector<Vec3f> &tex, float &weight,
-                     const int normalizef) const {
+void Cphoto::grabTex(const int level, const Vec4f &coord,  const Vec4f &pxaxis, const Vec4f &pyaxis, const Vec4f &pzaxis, 
+                     const int size, std::vector<Vec3f> &tex, float &weight, const bool normalizef) const {
   const int scale = 0x0001 << level;
 
   const Vec3f icoord3 = project(coord, level);

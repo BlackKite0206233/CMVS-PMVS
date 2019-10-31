@@ -59,7 +59,7 @@ float Cdetector::setThreshold(std::multiset<Cpoint> &grid) {
     ave2 += begin->m_response * begin->m_response;
     begin++;
   }
-  if (count == 0)
+  if (!count)
     count = 1;
   ave  /= count;
   ave2 /= count;
@@ -71,21 +71,21 @@ float Cdetector::setThreshold(std::multiset<Cpoint> &grid) {
   return threshold;
 }
 
-int Cdetector::isCloseBoundary(const int x, const int y, const int margin) const {
+bool Cdetector::isCloseBoundary(const int x, const int y, const int margin) const {
   if (m_mask.empty())
-    return 0;
+    return false;
 
   if (x - margin < 0 || m_width <= x + margin || y - margin < 0 || m_height <= y + margin)
-    return 1;
+    return true;
 
   for (int j = -margin; j <= margin; ++j) {
     const int ytmp = y + j;
     for (int i = -margin; i <= margin; ++i) {
       const int xtmp = x + i;
 
-      if (m_mask[ytmp][xtmp] == 0)
-        return 1;
+      if (!m_mask[ytmp][xtmp])
+        return true;
     }
   }
-  return 0;
+  return false;
 }

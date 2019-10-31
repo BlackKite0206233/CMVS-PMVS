@@ -3,6 +3,7 @@
 
 #include "point.h"
 #include <vector>
+#include <set>
 
 namespace PMVS3 {
 class Cdetector {
@@ -13,7 +14,7 @@ public:
 
 protected:
   static float setThreshold(std::multiset<Cpoint> &grid);
-  int isCloseBoundary(const int x, const int y, const int margin) const;
+  bool isCloseBoundary(const int x, const int y, const int margin) const;
   int m_width;
   int m_height;
   std::vector<std::vector<Vec3f>> m_image;
@@ -21,10 +22,7 @@ protected:
 
 public:
   template <class T>
-  void convolveX(std::vector<std::vector<T>> &image,
-                 const std::vector<std::vector<unsigned char>> &mask,
-                 const std::vector<float> &filter,
-                 std::vector<std::vector<T>> &buffer) {
+  void convolveX(std::vector<std::vector<T>> &image, const std::vector<std::vector<unsigned char>> &mask, const std::vector<float> &filter, std::vector<std::vector<T>> &buffer) {
     const int width  = image[0].size();
     const int height = image.size();
     const int margin = ((int)filter.size()) / 2;
@@ -33,7 +31,7 @@ public:
       for (int x = 0; x < width; ++x) {
         buffer[y][x] *= 0.0;
 
-        if (!mask.empty() && mask[y][x] == 0)
+        if (!mask.empty() && !mask[y][x])
           continue;
 
         for (int j = 0; j < (int)filter.size(); ++j) {
@@ -45,7 +43,7 @@ public:
 
           const int ytmp = y;
 
-          if (!mask.empty() && mask[ytmp][xtmp] == 0)
+          if (!mask.empty() && !mask[ytmp][xtmp])
             continue;
 
           buffer[y][x] += filter[j] * image[ytmp][xtmp];
@@ -57,10 +55,7 @@ public:
   }
 
   template <class T>
-  void convolveY(std::vector<std::vector<T>> &image,
-                 const std::vector<std::vector<unsigned char>> &mask,
-                 const std::vector<float> &filter,
-                 std::vector<std::vector<T>> &buffer) {
+  void convolveY(std::vector<std::vector<T>> &image, const std::vector<std::vector<unsigned char>> &mask, const std::vector<float> &filter, std::vector<std::vector<T>> &buffer) {
     const int width  = image[0].size();
     const int height = image.size();
     const int margin = ((int)filter.size()) / 2;
@@ -69,7 +64,7 @@ public:
       for (int x = 0; x < width; ++x) {
         buffer[y][x] *= 0.0;
 
-        if (!mask.empty() && mask[y][x] == 0)
+        if (!mask.empty() && !mask[y][x])
           continue;
 
         for (int j = 0; j < (int)filter.size(); ++j) {
@@ -80,7 +75,7 @@ public:
           else if (height <= ytmp)
             ytmp = height - 1;
 
-          if (!mask.empty() && mask[ytmp][xtmp] == 0)
+          if (!mask.empty() && !mask[ytmp][xtmp])
             continue;
 
           buffer[y][x] += filter[j] * image[ytmp][xtmp];
@@ -92,9 +87,7 @@ public:
   }
 
   template <class T>
-  void convolveX(std::vector<std::vector<T>> &image,
-                 const std::vector<float> &filter,
-                 std::vector<std::vector<T>> &buffer) {
+  void convolveX(std::vector<std::vector<T>> &image, const std::vector<float> &filter, std::vector<std::vector<T>> &buffer) {
     const int width  = image[0].size();
     const int height = image.size();
     const int margin = ((int)filter.size()) / 2;
@@ -118,9 +111,7 @@ public:
   }
 
   template <class T>
-  void convolveY(std::vector<std::vector<T>> &image,
-                 const std::vector<float> &filter,
-                 std::vector<std::vector<T>> &buffer) {
+  void convolveY(std::vector<std::vector<T>> &image, const std::vector<float> &filter, std::vector<std::vector<T>> &buffer) {
     const int width  = image[0].size();
     const int height = image.size();
     const int margin = ((int)filter.size()) / 2;

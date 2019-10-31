@@ -37,7 +37,7 @@ Cimage::Cimage(void) { m_alloc = 0; }
 
 Cimage::~Cimage() {}
 
-void Cimage::completeName(const std::string &lhs, std::string &rhs, const int color) {
+void Cimage::completeName(const std::string &lhs, std::string &rhs, const bool color) {
   if (5 <= lhs.length() && lhs[lhs.length() - 4] == '.') {
     rhs = lhs;
     return;
@@ -89,7 +89,7 @@ void Cimage::init(const std::string name, const std::string mname, const int max
   m_maxLevel = maxLevel;
   // m_color = 1;
 
-  if (m_maxLevel == 0) {
+  if (!m_maxLevel) {
     cerr << "Number of level 0, set it to 1." << endl;
     m_maxLevel = 1;
   }
@@ -101,8 +101,8 @@ void Cimage::init(const std::string name, const std::string mname, const std::st
     completeName(ename, m_ename, 0);
 }
 
-void Cimage::alloc(const int fast, const int filter) {
-  if (m_alloc == 1 && fast == 1)
+void Cimage::alloc(const bool fast, const int filter) {
+  if (m_alloc == 1 && fast)
     return;
   if (m_alloc == 2)
     return;
@@ -488,7 +488,7 @@ void Cimage::setEdge(const float threshold) {
   buildEdge();
 }
 
-int Cimage::readAnyImage(const std::string file, std::vector<unsigned char> &image, int &width, int &height, const int fast) {
+bool Cimage::readAnyImage(const std::string file, std::vector<unsigned char> &image, int &width, int &height, const bool fast) {
   // Use CImg for image loading
   cimg_library::CImg<unsigned char> cimage;
   try {
@@ -496,7 +496,7 @@ int Cimage::readAnyImage(const std::string file, std::vector<unsigned char> &ima
     if (!cimage.is_empty()) {
       if (cimage.spectrum() < 3) {
         cerr << "Unsufficient components (not a color image). Component num is " << cimage.spectrum() << endl;
-        return 1;
+        return true;
       }
       width  = cimage.width();
       height = cimage.height();
@@ -516,19 +516,19 @@ int Cimage::readAnyImage(const std::string file, std::vector<unsigned char> &ima
     }
   } catch (cimg_library::CImgException &e) {
     std::cerr << "Couldn't read image " << file.c_str() << std::endl;
-    return 0;
+    return false;
   }
-  return 1;
+  return true;
 }
 
-int Cimage::readPBMImage(const std::string file, std::vector<unsigned char> &image, int &width, int &height, const int fast) {
+bool Cimage::readPBMImage(const std::string file, std::vector<unsigned char> &image, int &width, int &height, const bool fast) {
   if (file.substr(file.length() - 3, file.length()) != "pbm")
     return 0;
 
   ifstream ifstr;
   ifstr.open(file.c_str());
   if (!ifstr.is_open()) {
-    return 0;
+    return false;
     // exit (1);
   }
   string header;
@@ -539,7 +539,7 @@ int Cimage::readPBMImage(const std::string file, std::vector<unsigned char> &ima
 
   if (header != "P4") {
     cerr << "Only accept binary pbm format: " << file << endl;
-    return 0;
+    return false;
   }
 
   while (1) {
@@ -557,10 +557,10 @@ int Cimage::readPBMImage(const std::string file, std::vector<unsigned char> &ima
   image.clear();
   if (fast) {
     ifstr.close();
-    return 1;
+    return true;
   }
   int bcount = width * height;
-  if (bcount % 8 != 0)
+  if (bcount % 8)
     bcount++;
 
   int count = 0;
@@ -579,15 +579,15 @@ int Cimage::readPBMImage(const std::string file, std::vector<unsigned char> &ima
   }
   ifstr.close();
 
-  return 1;
+  return true;
 }
 
-int Cimage::writePBMImage(const std::string file, std::vector<unsigned char> &image, int &width, int &height, const int fast) {
+bool Cimage::writePBMImage(const std::string file, std::vector<unsigned char> &image, int &width, int &height, const bool fast) {
   ofstream ofstr;
   ofstr.open(file.c_str());
   if (!ofstr.is_open()) {
     cerr << "Cannot write to a file: " << file << endl;
-    return 0;
+    return false;
   }
 
   ofstr << "P4" << endl << width << ' ' << height << endl;
@@ -604,21 +604,21 @@ int Cimage::writePBMImage(const std::string file, std::vector<unsigned char> &im
       ofstr.write((char *)&uctmp, sizeof(char));
   }
   const int itmp = (width * height) % 8;
-  if (itmp != 0) {
+  if (itmp) {
     uctmp <<= 8 - itmp;
     ofstr.write((char *)&uctmp, sizeof(char));
   }
 
   ofstr.close();
-  return 1;
+  return true;
 }
 
-int Cimage::writePGMImage(const std::string file, const std::vector<unsigned char> &image, const int width, const int height) {
+bool Cimage::writePGMImage(const std::string file, const std::vector<unsigned char> &image, const int width, const int height) {
   ofstream ofstr;
   ofstr.open(file.c_str());
   if (!ofstr.is_open()) {
     cerr << "Cannot write to a file: " << file << endl;
-    return 0;
+    return false;
   }
 
   ofstr << "P5" << endl << width << ' ' << height << endl << 255 << endl;
@@ -629,18 +629,18 @@ int Cimage::writePGMImage(const std::string file, const std::vector<unsigned cha
   }
 
   ofstr.close();
-  return 1;
+  return true;
 }
 
-int Cimage::readPGMImage(const std::string file, std::vector<unsigned char> &image, int &width, int &height, const int fast) {
+bool Cimage::readPGMImage(const std::string file, std::vector<unsigned char> &image, int &width, int &height, const bool fast) {
   if (file.substr(file.length() - 3, file.length()) != "pgm")
-    return 0;
+    return false;
 
   ifstream ifstr;
   ifstr.open(file.c_str());
   if (!ifstr.is_open()) {
     // cerr << "Cannot open a file: " << file << endl;
-    return 0;
+    return false;
     // exit (1);
   }
   string header;
@@ -651,7 +651,7 @@ int Cimage::readPGMImage(const std::string file, std::vector<unsigned char> &ima
   ifstr.read((char *)&uctmp, sizeof(unsigned char));
   if (header != "P5") {
     cerr << "Only accept binary pgm format: " << file << ' ' << header << endl;
-    return 0;
+    return false;
   }
 
   while (1) {
@@ -669,7 +669,7 @@ int Cimage::readPGMImage(const std::string file, std::vector<unsigned char> &ima
   image.clear();
   if (fast) {
     ifstr.close();
-    return 1;
+    return true;
   }
   for (int y = 0; y < height; ++y) {
     for (int x = 0; x < width; ++x) {
@@ -679,12 +679,12 @@ int Cimage::readPGMImage(const std::string file, std::vector<unsigned char> &ima
   }
   ifstr.close();
 
-  return 1;
+  return true;
 }
 
-int Cimage::readPPMImage(const std::string file, std::vector<unsigned char> &image, int &width, int &height, const int fast) {
+bool Cimage::readPPMImage(const std::string file, std::vector<unsigned char> &image, int &width, int &height, const bool fast) {
   if (file.substr(file.length() - 3, file.length()) != "ppm")
-    return 0;
+    return false;
 
   // Use CImg for image loading
   cimg_library::CImg<unsigned char> cimage;
@@ -693,7 +693,7 @@ int Cimage::readPPMImage(const std::string file, std::vector<unsigned char> &ima
     if (!cimage.is_empty()) {
       if (cimage.spectrum() != 1 && cimage.spectrum() != 3) {
         cerr << "Cannot handle this component. Component num is " << cimage.spectrum() << endl;
-        return 1;
+        return true;
       }
       width  = cimage.width();
       height = cimage.height();
@@ -713,17 +713,17 @@ int Cimage::readPPMImage(const std::string file, std::vector<unsigned char> &ima
     }
   } catch (cimg_library::CImgException &e) {
     std::cerr << "Couldn't read image " << file.c_str() << std::endl;
-    return 0;
+    return false;
   }
-  return 1;
+  return true;
 }
 
-int Cimage::writePPMImage(const std::string file, const std::vector<unsigned char> &image, const int width, const int height) {
+bool Cimage::writePPMImage(const std::string file, const std::vector<unsigned char> &image, const int width, const int height) {
   ofstream ofstr;
   ofstr.open(file.c_str());
   if (!ofstr.is_open()) {
     cerr << "Cannot write to a file: " << file << endl;
-    return 0;
+    return false;
   }
 
   ofstr << "P6" << endl << width << ' ' << height << endl << 255 << endl;
@@ -734,7 +734,7 @@ int Cimage::writePPMImage(const std::string file, const std::vector<unsigned cha
   }
 
   ofstr.close();
-  return 1;
+  return true;
 }
 
 //----------------------------------------------------------------------
@@ -760,9 +760,9 @@ my_error_exit(j_common_ptr cinfo) {
   longjmp(myerr->setjmp_buffer, 1);
 }
 
-int Cimage::readJpegImage(const std::string file, std::vector<unsigned char> &image, int &width, int &height, const int fast) {
+bool Cimage::readJpegImage(const std::string file, std::vector<unsigned char> &image, int &width, int &height, const bool fast) {
   if (file.substr(file.length() - 3, file.length()) != "jpg")
-    return 0;
+    return false;
 
   // Use CImg for image loading
   cimg_library::CImg<unsigned char> cimage;
@@ -771,7 +771,7 @@ int Cimage::readJpegImage(const std::string file, std::vector<unsigned char> &im
     if (!cimage.is_empty()) {
       if (cimage.spectrum() != 1 && cimage.spectrum() != 3) {
         cerr << "Cannot handle this component. Component num is " << cimage.spectrum() << endl;
-        return 1;
+        return true;
       }
       width  = cimage.width();
       height = cimage.height();
@@ -791,13 +791,13 @@ int Cimage::readJpegImage(const std::string file, std::vector<unsigned char> &im
     }
   } catch (cimg_library::CImgException &e) {
     std::cerr << "Couldn't read image " << file.c_str() << std::endl;
-    return 0;
+    return false;
   }
 
-  return 1;
+  return true;
 }
 
-void Cimage::writeJpegImage(const std::string filename, const std::vector<unsigned char> &buffer, const int width, const int height, const int flip) {
+void Cimage::writeJpegImage(const std::string filename, const std::vector<unsigned char> &buffer, const int width, const int height, const bool flip) {
   const int quality = 100;
 
   struct jpeg_compress_struct cinfo;
@@ -968,7 +968,7 @@ void Cimage::filterG(const std::vector<float> &filter, const int width, const in
 }
 
 void Cimage::filterG(const std::vector<float> &filter, const int width, const int height, std::vector<float> &data, std::vector<float> &buffer) {
-  if ((int)filter.size() % 2 == 0) {
+  if (!((int)filter.size() % 2)) {
     cerr << "Filter must have an odd length" << endl;
     exit(1);
   }
@@ -1017,7 +1017,7 @@ void Cimage::filterG(const std::vector<float> &filter, const int width, const in
 }
 
 void Cimage::filterG(const std::vector<float> &filter, std::vector<std::vector<float>> &data, std::vector<std::vector<float>> &buffer) {
-  if ((int)filter.size() % 2 == 0) {
+  if (!(int)filter.size() % 2) {
     cerr << "Filter must have an odd length" << endl;
     exit(1);
   }
@@ -1115,7 +1115,7 @@ void Cimage::sift(const Vec3f &center, const Vec3f &xaxis, const Vec3f &yaxis, s
   const float step = (norm(xaxis) + norm(yaxis)) / 2.0f;
   const int level = max(0, min(m_maxLevel - 1, (int)floor(log(step) / log(2.0f) + 0.5f)));
 
-  if (level != 0) {
+  if (level) {
     const float scale = 0x0001 << level;
     sift(center / scale, xaxis / scale, yaxis / scale, level, descriptor);
   } else

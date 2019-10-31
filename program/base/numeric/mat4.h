@@ -113,10 +113,7 @@ template <class T> inline TMat4<T> &TMat4<T>::operator/=(T s) {
 };
 
 template <class T> inline bool TMat4<T>::operator==(const TMat4<T> &m) const {
-  if (m_row[0] == m.m_row[0] && m_row[1] == m.m_row[1] && m_row[2] == m.m_row[2] && m_row[3] == m.m_row[3])
-    return true;
-  else
-    return false;
+  return m_row[0] == m.m_row[0] && m_row[1] == m.m_row[1] && m_row[2] == m.m_row[2] && m_row[3] == m.m_row[3];
 };
 
 template <class T> inline bool TMat4<T>::operator!=(const TMat4<T> &m) const {
@@ -267,7 +264,7 @@ template <class T> TMat4<T> perspective_matrix(T fovy, T aspect, T zmin, T zmax)
   return M;
 }
 
-template <class T> Mat4<T> lookat_matrix(const TVec3<T> &from, const TVec3<T> &at, const TVec3<T> &v_up) {
+template <class T> TMat4<T> lookat_matrix(const TVec3<T> &from, const TVec3<T> &at, const TVec3<T> &v_up) {
   TVec3<T> up = v_up;
   unitize(up);
   TVec3<T> f = at - from;

@@ -47,37 +47,37 @@ public:
   inline std::vector<unsigned char> &getMask(const  int level);
   inline std::vector<unsigned char> &getEdge(const  int level);
 
-  inline int isSafe(const Vec3f &icoord, const int level) const;
+  inline bool isSafe(const Vec3f &icoord, const int level) const;
   // Check if a mask image exists
-  inline int isMask(void) const;
+  inline bool isMask(void) const;
   // Check if an edge image exists
-  inline int isEdge(void) const;
+  inline bool isEdge(void) const;
 
   // allocate and free memories, this function is also called when you call
   // getColor/getMask when the memory is not allocated
-  void alloc(const int fast = 0, const int filter = 0);
+  void alloc(const bool fast = false, const int filter = 0);
   // free memory
   void free(void);
   // free memory below the specified level
   void free(const int freeLevel);
 
-  static int readAnyImage(const std::string file,  std::vector<unsigned char> &image, int &width, int &height, const int fast);
+  static bool readAnyImage(const std::string file,  std::vector<unsigned char> &image, int &width, int &height, const bool fast);
 
-  static int readPBMImage(const std::string file,  std::vector<unsigned char> &image, int &width, int &height, const int fast);
+  static bool readPBMImage(const std::string file,  std::vector<unsigned char> &image, int &width, int &height, const bool fast);
 
-  static int writePBMImage(const std::string file, std::vector<unsigned char> &image, int &width, int &height, const int fast);
+  static bool writePBMImage(const std::string file, std::vector<unsigned char> &image, int &width, int &height, const bool fast);
 
-  static int readPGMImage(const std::string file,  std::vector<unsigned char> &image, int &width, int &height, const int fast);
+  static bool readPGMImage(const std::string file,  std::vector<unsigned char> &image, int &width, int &height, const bool fast);
 
-  static int writePGMImage(const std::string file, const std::vector<unsigned char> &image, const int width, const int height);
+  static bool writePGMImage(const std::string file, const std::vector<unsigned char> &image, const int width, const int height);
 
-  static int readPPMImage(const std::string file, std::vector<unsigned char> &image, int &width, int &height, const int fast);
+  static bool readPPMImage(const std::string file, std::vector<unsigned char> &image, int &width, int &height, const bool fast);
 
-  static int writePPMImage(const std::string file, const std::vector<unsigned char> &image, const int width, const int height);
+  static bool writePPMImage(const std::string file, const std::vector<unsigned char> &image, const int width, const int height);
 
-  static int readJpegImage(const std::string file, std::vector<unsigned char> &image, int &width, int &height, const int fast);
+  static bool readJpegImage(const std::string file, std::vector<unsigned char> &image, int &width, int &height, const bool fast);
 
-  static void writeJpegImage(const std::string filename, const std::vector<unsigned char> &buffer, const int width, const int height, const int flip = 0);
+  static void writeJpegImage(const std::string filename, const std::vector<unsigned char> &buffer, const int width, const int height, const bool flip = false);
 
   static float hsdis(const float h0, const float s0, const float h1, const float s1);
 
@@ -130,7 +130,7 @@ protected:
   // member functions
   //----------------------------------------------------------------------
   // complete the name of an image file
-  static void completeName(const std::string &lhs, std::string &rhs, const int color);
+  static void completeName(const std::string &lhs, std::string &rhs, const bool color);
 
   // build image pyramids
   void buildImageMaskEdge(const int filter);
@@ -180,7 +180,7 @@ protected:
   int m_maxLevel;
 };
 
-inline int Cimage::isSafe(const Vec3f &icoord, const int level) const {
+inline bool Cimage::isSafe(const Vec3f &icoord, const int level) const {
 #ifdef FURUKAWA_IMAGE_BICUBIC
   if (icoord[0] < 1.0 || m_widths[level] - 3 < icoord[0] || icoord[1] < 1.0 ||
       m_heights[level] - 3 < icoord[1])
@@ -188,27 +188,18 @@ inline int Cimage::isSafe(const Vec3f &icoord, const int level) const {
   else
     return 1;
 #else
-  if (icoord[0] < 0.0 || m_widths[level] - 2 < icoord[0] || icoord[1] < 0.0 || m_heights[level] - 2 < icoord[1])
-    return 0;
-  else
-    return 1;
+  return !(icoord[0] < 0.0 || m_widths[level] - 2 < icoord[0] || icoord[1] < 0.0 || m_heights[level] - 2 < icoord[1]);
 #endif
 };
 
 // Check if a mask image exists
-inline int Cimage::isMask(void) const {
-  if (m_masks[0].empty())
-    return 0;
-  else
-    return 1;
+inline bool Cimage::isMask(void) const {
+  return !m_masks[0].empty();
 };
 
 // Check if an edge image exists
-inline int Cimage::isEdge(void) const {
-  if (m_edges[0].empty())
-    return 0;
-  else
-    return 1;
+inline bool Cimage::isEdge(void) const {
+  return !m_edges[0].empty();
 };
 
 inline const std::vector<unsigned char> & Cimage::getImage(const int level) const {
