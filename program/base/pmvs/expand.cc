@@ -11,51 +11,51 @@
 
 using namespace PMVS3;
 using namespace std;
-using namespace Patch;
+using namespace ptch;
 
-Cexpand::Cexpand(CfindMatch &findMatch) : m_fm(findMatch) {}
+Expand::Expand(FindMatch &findMatch) : fm(findMatch) {}
 
-void Cexpand::init(void) {}
+void Expand::Init(void) {}
 
-void Cexpand::run(void) {
-  m_fm.m_count = 0;
-  m_fm.m_jobs.clear();
-  m_ecounts.resize(m_fm.m_CPU);
-  m_fcounts0.resize(m_fm.m_CPU);
-  m_fcounts1.resize(m_fm.m_CPU);
-  m_pcounts.resize(m_fm.m_CPU);
-  fill(m_ecounts.begin(),  m_ecounts.end(),  0);
-  fill(m_fcounts0.begin(), m_fcounts0.end(), 0);
-  fill(m_fcounts1.begin(), m_fcounts1.end(), 0);
-  fill(m_pcounts.begin(),  m_pcounts.end(),  0);
+void Expand::Run(void) {
+  fm.count = 0;
+  fm.jobs.clear();
+  eCounts.resize(fm.CPU);
+  fCounts0.resize(fm.CPU);
+  fCounts1.resize(fm.CPU);
+  pCounts.resize(fm.CPU);
+  fill(eCounts.begin(),  eCounts.end(),  0);
+  fill(fCounts0.begin(), fCounts0.end(), 0);
+  fill(fCounts1.begin(), fCounts1.end(), 0);
+  fill(pCounts.begin(),  pCounts.end(),  0);
 
   time_t starttime = time(NULL);
 
-  m_fm.m_pos.clearCounts();
-  m_fm.m_pos.clearFlags();
+  fm.po.ClearCounts();
+  fm.po.ClearFlags();
 
-  if (!m_queue.empty()) {
+  if (!queue.empty()) {
     cerr << "Queue is not empty in expand" << endl;
     exit(1);
   }
   // set queue
-  m_fm.m_pos.collectPatches(m_queue);
+  fm.po.CollectPatches(queue);
 
   cerr << "Expanding patches..." << flush;
-  vector<thrd_t> threads(m_fm.m_CPU);
-  for (int c = 0; c < m_fm.m_CPU; ++c)
+  vector<thrd_t> threads(fm.CPU);
+  for (int c = 0; c < fm.CPU; ++c)
     thrd_create(&threads[c], &expandThreadTmp, (void *)this);
-  for (int c = 0; c < m_fm.m_CPU; ++c)
+  for (int c = 0; c < fm.CPU; ++c)
     thrd_join(threads[c], NULL);
 
   cerr << endl
        << "---- EXPANSION: " << (time(NULL) - starttime) << " secs ----"
        << endl;
 
-  const int trial = accumulate(m_ecounts.begin(),  m_ecounts.end(),  0);
-  const int fail0 = accumulate(m_fcounts0.begin(), m_fcounts0.end(), 0);
-  const int fail1 = accumulate(m_fcounts1.begin(), m_fcounts1.end(), 0);
-  const int pass  = accumulate(m_pcounts.begin(),  m_pcounts.end(),  0);
+  const int trial = accumulate(eCounts.begin(),  eCounts.end(),  0);
+  const int fail0 = accumulate(fCounts0.begin(), fCounts0.end(), 0);
+  const int fail1 = accumulate(fCounts1.begin(), fCounts1.end(), 0);
+  const int pass  = accumulate(pCounts.begin(),  pCounts.end(),  0);
   cerr << "Total pass fail0 fail1 refinepatch: " << trial << ' ' << pass << ' '
        << fail0 << ' ' << fail1 << ' ' << pass + fail1 << endl;
   cerr << "Total pass fail0 fail1 refinepatch: " << 100 * trial / (float)trial
@@ -64,27 +64,27 @@ void Cexpand::run(void) {
        << 100 * (pass + fail1) / (float)trial << endl;
 }
 
-int Cexpand::expandThreadTmp(void *arg) {
-  ((Cexpand *)arg)->expandThread();
+int Expand::expandThreadTmp(void *arg) {
+  ((Expand *)arg)->expandThread();
   return 0;
 }
 
-void Cexpand::expandThread(void) {
-  mtx_lock(&m_fm.m_lock);
-  const int id = m_fm.m_count++;
-  mtx_unlock(&m_fm.m_lock);
+void Expand::expandThread(void) {
+  mtx_lock(&fm.lock);
+  const int id = fm.count++;
+  mtx_unlock(&fm.lock);
 
   while (1) {
-    Ppatch ppatch;
+    pPatch ppatch;
     int empty = 0;
-    mtx_lock(&m_fm.m_lock);
-    if (m_queue.empty())
+    mtx_lock(&fm.lock);
+    if (queue.empty())
       empty = 1;
     else {
-      ppatch = m_queue.top();
-      m_queue.pop();
+      ppatch = queue.top();
+      queue.pop();
     }
-    mtx_unlock(&m_fm.m_lock);
+    mtx_unlock(&fm.lock);
 
     if (empty)
       break;
@@ -98,29 +98,29 @@ void Cexpand::expandThread(void) {
         const int flag = expandSub(ppatch, id, canCoords[i][j]);
         // fail
         if (flag)
-          ppatch->m_dflag |= (0x0001) << i;
+          ppatch->dFlag |= (0x0001) << i;
       }
     }
   }
 }
 
-void Cexpand::findEmptyBlocks(const Ppatch &ppatch,
+void Expand::findEmptyBlocks(const pPatch &ppatch,
                               std::vector<std::vector<Vec4f>> &canCoords) {
-  // dnum must be at most 8, because m_dflag is char
+  // dnum must be at most 8, because dflag is char
   const int dnum = 6;
-  const Cpatch &patch = *ppatch;
+  const Patch &patch = *ppatch;
 
   // Empty six directions
   Vec4f xdir, ydir;
-  ortho(ppatch->m_normal, xdir, ydir);
+  ortho(ppatch->normal, xdir, ydir);
 
   // -1: not empty
-  // pos: number of free m_pgrids
+  // pos: number of free pgrids
   //
   // Check if each direction satisfies both of the following two constraints.
   // a. No neighbor
-  // b. At least minImageNumThreshold m_pgrids without any patches and few
-  // m_counts
+  // b. At least minImageNumThreshold pgrids without any patches and few
+  // counts
   vector<float> fill;
   fill.resize(dnum);
   std::fill(fill.begin(), fill.end(), 0.0f);
@@ -133,17 +133,17 @@ void Cexpand::findEmptyBlocks(const Ppatch &ppatch,
   // ----------------------------------------------------------------------
   // Minimum number of images required to obtain high res results, and
   // explor empty blocks.
-  const float radius = computeRadius(patch);
+  const float radius = ComputeRadius(patch);
   const float radiuslow  = radius / 6.0f;  // 2.0f;
   const float radiushigh = radius * 2.5f; // 2.0f;//1.5f;
 
-  vector<Ppatch> neighbors;
-  m_fm.m_pos.findNeighbors(patch, neighbors, 1, 4.0f); // 3.0f);
+  vector<pPatch> neighbors;
+  fm.po.FindNeighbors(patch, neighbors, 1, 4.0f); // 3.0f);
 
-  vector<Ppatch>::iterator bpatch = neighbors.begin();
-  vector<Ppatch>::iterator epatch = neighbors.end();
+  vector<pPatch>::iterator bpatch = neighbors.begin();
+  vector<pPatch>::iterator epatch = neighbors.end();
   while (bpatch != epatch) {
-    const Vec4f diff = (*bpatch)->m_coord - ppatch->m_coord;
+    const Vec4f diff = (*bpatch)->coord - ppatch->coord;
     Vec2f f2(diff * xdir, diff * ydir);
     const float len = norm(f2);
     if (len < radiuslow || radiushigh < len) {
@@ -174,107 +174,106 @@ void Cexpand::findEmptyBlocks(const Ppatch &ppatch,
       continue;
 
     // If already failed, don't try, because we fail again.
-    if (ppatch->m_dflag & (0x0001 << i))
+    if (ppatch->dFlag & (0x0001 << i))
       continue;
 
     const float angle = 2 * M_PI * i / dnum;
-    Vec4f canCoord = ppatch->m_coord + cos(angle) * radius * xdir + sin(angle) * radius * ydir;
+    Vec4f canCoord = ppatch->coord + cos(angle) * radius * xdir + sin(angle) * radius * ydir;
     canCoords[i].push_back(canCoord);
   }
 }
 
-float Cexpand::computeRadius(const Patch::Cpatch &patch) {
+float Expand::ComputeRadius(const ptch::Patch &patch) {
   const int minnum = 2;
   vector<float> units;
-  m_fm.m_optim.computeUnits(patch, units);
+  fm.optim.ComputeUnits(patch, units);
   vector<float> vftmp = units;
-#ifdef DEBUG
+
   if ((int)units.size() < minnum) {
-    cerr << "units size less than minnum: " << (int)units.size() << ' '
-         << minnum << endl;
-    cout << (int)patch.m_images.size() << endl;
+    cerr << "units size less than minnum: " << (int)units.size() << ' ' << minnum << endl;
+    cout << (int)patch.images.size() << endl;
     exit(1);
   }
-#endif
+
   nth_element(vftmp.begin(), vftmp.begin() + minnum - 1, vftmp.end());
   // Threshold is the second smallest value with some margin
   // ??? critical
-  return (*(vftmp.begin() + minnum - 1)) * m_fm.m_csize;
+  return (*(vftmp.begin() + minnum - 1)) * fm.cSize;
 }
 
-bool Cexpand::expandSub(const Ppatch &orgppatch, const int id, const Vec4f &canCoord) {
+bool Expand::expandSub(const pPatch &orgppatch, const int id, const Vec4f &canCoord) {
   // Choose the closest one
-  Cpatch patch;
-  patch.m_coord  = canCoord;
-  patch.m_normal = orgppatch->m_normal;
-  patch.m_flag   = 1;
+  Patch patch;
+  patch.coord  = canCoord;
+  patch.normal = orgppatch->normal;
+  patch.flag   = 1;
 
-  m_fm.m_pos.setGridsImages(patch, orgppatch->m_images);
-  if (patch.m_images.empty())
+  fm.po.SetGridsImages(patch, orgppatch->images);
+  if (patch.images.empty())
     return true;
 
   //-----------------------------------------------------------------
   // Check bimages and mask. Then, initialize possible visible images
-  if (!m_fm.m_pss.getMask(patch.m_coord, m_fm.m_level) || !m_fm.insideBimages(patch.m_coord))
+  if (!fm.ps.GetMask(patch.coord, fm.level) || !fm.InsideBimages(patch.coord))
     return true;
 
-  // Check m_counts and maybe m_pgrids
+  // Check counts and maybe pgrids
   const bool flag = checkCounts(patch);
   if (flag)
     return true;
 
   // Check edge
-  m_fm.m_optim.removeImagesEdge(patch);
-  if (patch.m_images.empty())
+  fm.optim.RemoveImagesEdge(patch);
+  if (patch.images.empty())
     return true;
 
-  ++m_ecounts[id];
+  ++eCounts[id];
   //-----------------------------------------------------------------
   // Preprocess
-  if (m_fm.m_optim.preProcess(patch, id, 0)) {
-    ++m_fcounts0[id];
+  if (fm.optim.PreProcess(patch, id, 0)) {
+    ++fCounts0[id];
     return true;
   }
 
   //-----------------------------------------------------------------
-  m_fm.m_optim.refinePatch(patch, id, 100);
+  fm.optim.RefinePatch(patch, id, 100);
 
   //-----------------------------------------------------------------
-  if (m_fm.m_optim.postProcess(patch, id, 0)) {
-    ++m_fcounts1[id];
+  if (fm.optim.PostProcess(patch, id, 0)) {
+    ++fCounts1[id];
     return true;
   }
-  ++m_pcounts[id];
+  ++pCounts[id];
 
   //-----------------------------------------------------------------
   // Finally
-  Ppatch ppatch(new Cpatch(patch));
+  pPatch ppatch(new Patch(patch));
 
-  // patch.m_images = orgppatch->m_images;
+  // patch.images = orgppatch->images;
   const int add = updateCounts(patch);
 
-  m_fm.m_pos.addPatch(ppatch);
+  fm.po.AddPatch(ppatch);
 
   if (add) {
-    mtx_lock(&m_fm.m_lock);
-    m_queue.push(ppatch);
-    mtx_unlock(&m_fm.m_lock);
+    mtx_lock(&fm.lock);
+    queue.push(ppatch);
+    mtx_unlock(&fm.lock);
   }
 
   return false;
 }
 
-bool Cexpand::checkCounts(Patch::Cpatch &patch) {
+bool Expand::checkCounts(ptch::Patch &patch) {
   int full  = 0;
   int empty = 0;
 
-  vector<int>::iterator   begin  = patch.m_images.begin();
-  vector<int>::iterator   end    = patch.m_images.end();
-  vector<Vec2i>::iterator begin2 = patch.m_grids.begin();
+  vector<int>::iterator   begin  = patch.images.begin();
+  vector<int>::iterator   end    = patch.images.end();
+  vector<Vec2i>::iterator begin2 = patch.grids.begin();
 
   while (begin != end) {
     const int index = *begin;
-    if (m_fm.m_tnum <= index) {
+    if (fm.tNum <= index) {
       ++begin;
       ++begin2;
       continue;
@@ -282,19 +281,19 @@ bool Cexpand::checkCounts(Patch::Cpatch &patch) {
 
     const int ix = (*begin2)[0];
     const int iy = (*begin2)[1];
-    if (ix < 0 || m_fm.m_pos.m_gwidths[index] <= ix || iy < 0 || m_fm.m_pos.m_gheights[index] <= iy) {
+    if (ix < 0 || fm.po.gWidths[index] <= ix || iy < 0 || fm.po.gHeights[index] <= iy) {
       ++begin;
       ++begin2;
       continue;
     }
 
-    const int index2 = iy * m_fm.m_pos.m_gwidths[index] + ix;
+    const int index2 = iy * fm.po.gWidths[index] + ix;
 
     int flag = 0;
-    m_fm.m_imageLocks[index].rdlock();
-    if (!m_fm.m_pos.m_pgrids[index][index2].empty())
+    fm.imageLocks[index].rdlock();
+    if (!fm.po.pGrids[index][index2].empty())
       flag = 1;
-    m_fm.m_imageLocks[index].unlock();
+    fm.imageLocks[index].unlock();
     if (flag) {
       ++full;
       ++begin;
@@ -302,39 +301,39 @@ bool Cexpand::checkCounts(Patch::Cpatch &patch) {
       continue;
     }
 
-    // mtx_lock(&m_fm.m_countLocks[index]);
-    m_fm.m_countLocks[index].rdlock();
-    if (m_fm.m_countThreshold1 <= m_fm.m_pos.m_counts[index][index2])
+    // mtx_lock(&fm.countLocks[index]);
+    fm.countLocks[index].rdlock();
+    if (fm.countThreshold1 <= fm.po.counts[index][index2])
       ++full;
     else
       ++empty;
-    //++m_fm.m_pos.m_counts[index][index2];
-    m_fm.m_countLocks[index].unlock();
+    //++fm.pos.counts[index][index2];
+    fm.countLocks[index].unlock();
     ++begin;
     ++begin2;
   }
 
   // First expansion is expensive and make the condition strict
-  if (m_fm.m_depth <= 1) {
-    return empty < m_fm.m_minImageNumThreshold     && full != 0;
+  if (fm.depth <= 1) {
+    return empty < fm.minImageNumThreshold     && full != 0;
   } else {
-    return empty < m_fm.m_minImageNumThreshold - 1 && full != 0;
+    return empty < fm.minImageNumThreshold - 1 && full != 0;
   }
 }
 
-bool Cexpand::updateCounts(const Cpatch &patch) {
-  // Use m_images and m_vimages. Loosen when to set add = 1
+bool Expand::updateCounts(const Patch &patch) {
+  // Use images and vimages. Loosen when to set add = 1
   int full  = 0;
   int empty = 0;
 
   {
-    vector<int>::const_iterator   begin  = patch.m_images.begin();
-    vector<int>::const_iterator   end    = patch.m_images.end();
-    vector<Vec2i>::const_iterator begin2 = patch.m_grids.begin();
+    vector<int>::const_iterator   begin  = patch.images.begin();
+    vector<int>::const_iterator   end    = patch.images.end();
+    vector<Vec2i>::const_iterator begin2 = patch.grids.begin();
 
     while (begin != end) {
       const int index = *begin;
-      if (m_fm.m_tnum <= index) {
+      if (fm.tNum <= index) {
         ++begin;
         ++begin2;
         continue;
@@ -342,36 +341,36 @@ bool Cexpand::updateCounts(const Cpatch &patch) {
 
       const int ix = (*begin2)[0];
       const int iy = (*begin2)[1];
-      if (ix < 0 || m_fm.m_pos.m_gwidths[index] <= ix || iy < 0 || m_fm.m_pos.m_gheights[index] <= iy) {
+      if (ix < 0 || fm.po.gWidths[index] <= ix || iy < 0 || fm.po.gHeights[index] <= iy) {
         ++begin;
         ++begin2;
         continue;
       }
 
-      const int index2 = iy * m_fm.m_pos.m_gwidths[index] + ix;
+      const int index2 = iy * fm.po.gWidths[index] + ix;
 
-      m_fm.m_countLocks[index].wrlock();
-      if (m_fm.m_countThreshold1 <= m_fm.m_pos.m_counts[index][index2])
+      fm.countLocks[index].wrlock();
+      if (fm.countThreshold1 <= fm.po.counts[index][index2])
         ++full;
       else
         ++empty;
-      ++m_fm.m_pos.m_counts[index][index2];
+      ++fm.po.counts[index][index2];
 
-      m_fm.m_countLocks[index].unlock();
+      fm.countLocks[index].unlock();
       ++begin;
       ++begin2;
     }
   }
 
   {
-    vector<int>::const_iterator begin    = patch.m_vimages.begin();
-    vector<int>::const_iterator end      = patch.m_vimages.end();
-    vector<Vec2i>::const_iterator begin2 = patch.m_vgrids.begin();
+    vector<int>::const_iterator begin    = patch.vImages.begin();
+    vector<int>::const_iterator end      = patch.vImages.end();
+    vector<Vec2i>::const_iterator begin2 = patch.vGrids.begin();
 
     while (begin != end) {
       const int index = *begin;
 #ifdef DEBUG
-      if (m_fm.m_tnum <= index) {
+      if (fm.tnum <= index) {
         cerr << "Impossible in updateCounts" << endl;
         exit(1);
       }
@@ -379,22 +378,22 @@ bool Cexpand::updateCounts(const Cpatch &patch) {
 
       const int ix = (*begin2)[0];
       const int iy = (*begin2)[1];
-      if (ix < 0 || m_fm.m_pos.m_gwidths[index] <= ix || iy < 0 || m_fm.m_pos.m_gheights[index] <= iy) {
+      if (ix < 0 || fm.po.gWidths[index] <= ix || iy < 0 || fm.po.gHeights[index] <= iy) {
         ++begin;
         ++begin2;
         continue;
       }
 
-      const int index2 = iy * m_fm.m_pos.m_gwidths[index] + ix;
+      const int index2 = iy * fm.po.gWidths[index] + ix;
 
-      m_fm.m_countLocks[index].wrlock();
+      fm.countLocks[index].wrlock();
       ;
-      if (m_fm.m_countThreshold1 <= m_fm.m_pos.m_counts[index][index2])
+      if (fm.countThreshold1 <= fm.po.counts[index][index2])
         ++full;
       else
         ++empty;
-      ++m_fm.m_pos.m_counts[index][index2];
-      m_fm.m_countLocks[index].unlock();
+      ++fm.po.counts[index][index2];
+      fm.countLocks[index].unlock();
       ++begin;
       ++begin2;
     }

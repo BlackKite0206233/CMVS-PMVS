@@ -6,7 +6,7 @@
 using namespace PMVS3;
 using namespace std;
 
-void Cdetector::setGaussD(const float sigmaD, std::vector<float> &gaussD) {
+void Detector::SetGaussD(const float sigmaD, std::vector<float> &gaussD) {
   //----------------------------------------------------------------------
   const int marginD = (int)ceil(2 * sigmaD);
   const int sizeD = 2 * marginD + 1;
@@ -14,7 +14,7 @@ void Cdetector::setGaussD(const float sigmaD, std::vector<float> &gaussD) {
   gaussD.resize(sizeD);
 
   //----------------------------------------------------------------------
-  // set m_gaussD
+  // set gaussD
   float denom = 0.0;
   for (int x = 0; x < sizeD; ++x) {
     int xtmp = x - marginD;
@@ -28,14 +28,14 @@ void Cdetector::setGaussD(const float sigmaD, std::vector<float> &gaussD) {
     gaussD[x] /= denom;
 }
 
-void Cdetector::setGaussI(const float sigmaI, std::vector<float> &gaussI) {
+void Detector::SetGaussI(const float sigmaI, std::vector<float> &gaussI) {
   const int marginI = (int)ceil(2 * sigmaI);
   const int sizeI = 2 * marginI + 1;
 
   gaussI.resize(sizeI);
 
   //----------------------------------------------------------------------
-  // set m_gaussI
+  // set gaussI
   float denom = 0.0;
   for (int x = 0; x < sizeI; ++x) {
     int xtmp = x - marginI;
@@ -47,16 +47,16 @@ void Cdetector::setGaussI(const float sigmaI, std::vector<float> &gaussI) {
     gaussI[x] /= denom;
 }
 
-float Cdetector::setThreshold(std::multiset<Cpoint> &grid) {
+float Detector::setThreshold(std::multiset<Point> &grid) {
   float ave = 0.0;
   float ave2 = 0.0;
-  multiset<Cpoint>::iterator begin = grid.begin();
-  multiset<Cpoint>::iterator end = grid.end();
+  multiset<Point>::iterator begin = grid.begin();
+  multiset<Point>::iterator end = grid.end();
   int count = 0;
   while (begin != end) {
     count++;
-    ave  += begin->m_response;
-    ave2 += begin->m_response * begin->m_response;
+    ave  += begin->response;
+    ave2 += begin->response * begin->response;
     begin++;
   }
   if (!count)
@@ -71,11 +71,11 @@ float Cdetector::setThreshold(std::multiset<Cpoint> &grid) {
   return threshold;
 }
 
-bool Cdetector::isCloseBoundary(const int x, const int y, const int margin) const {
-  if (m_mask.empty())
+bool Detector::isCloseBoundary(const int x, const int y, const int margin) const {
+  if (mask.empty())
     return false;
 
-  if (x - margin < 0 || m_width <= x + margin || y - margin < 0 || m_height <= y + margin)
+  if (x - margin < 0 || width <= x + margin || y - margin < 0 || height <= y + margin)
     return true;
 
   for (int j = -margin; j <= margin; ++j) {
@@ -83,7 +83,7 @@ bool Cdetector::isCloseBoundary(const int x, const int y, const int margin) cons
     for (int i = -margin; i <= margin; ++i) {
       const int xtmp = x + i;
 
-      if (!m_mask[ytmp][xtmp])
+      if (!mask[ytmp][xtmp])
         return true;
     }
   }

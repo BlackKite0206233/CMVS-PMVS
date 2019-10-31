@@ -8,21 +8,21 @@
 #include <vector>
 
 namespace PMVS3 {
-class Cdog : public Cdetector {
+class Dog : public Detector {
 public:
-  void run(const std::vector<unsigned char> &image,
+  void Run(const std::vector<unsigned char> &image,
            const std::vector<unsigned char> &mask,
            const std::vector<unsigned char> &edge, 
            const int width, const int height, const int gspeedup,
            const float firstScale, // 1.4f
            const float lastScale,  // 4.0f
-           std::multiset<Cpoint> &result);
+           std::multiset<Point> &result);
 
-  virtual ~Cdog() {}
+  virtual ~Dog() {}
 
 protected:
-  float m_firstScale;
-  float m_lastScale;
+  float firstScale;
+  float lastScale;
 
   void init(const std::vector<unsigned char> &image, const std::vector<unsigned char> &mask, const std::vector<unsigned char> &edge);
 

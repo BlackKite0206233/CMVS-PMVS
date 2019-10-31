@@ -9,36 +9,36 @@ namespace PMVS3 {
 
 struct Soption {
 public:
-  int   m_level;
-  int   m_csize;
-  float m_threshold;
-  int   m_wsize;
-  int   m_minImageNum;
-  int   m_CPU;
-  float m_setEdge;
-  int   m_useBound;
-  int   m_useVisData;
-  int   m_sequence;
+  int   level;
+  int   cSize;
+  float threshold;
+  int   wSize;
+  int   minImageNum;
+  int   CPU;
+  float setEdge;
+  int   useBound;
+  int   useVisData;
+  int   sequence;
 
-  float m_maxAngleThreshold;
-  float m_quadThreshold;
+  float maxAngleThreshold;
+  float quadThreshold;
 
-  std::string m_prefix;
-  std::string m_option;
-  int m_tflag;
-  std::vector<int> m_timages;
-  int m_oflag;
-  std::vector<int> m_oimages;
+  std::string prefix;
+  std::string option;
+  int tFlag;
+  std::vector<int> tImages;
+  int oFlag;
+  std::vector<int> oImages;
 
-  std::map<int, int> m_dict;
+  std::map<int, int> dict;
 
-  std::vector<int> m_bindexes;
-  std::vector<std::vector<int>> m_visdata;
-  std::vector<std::vector<int>> m_visdata2;
+  std::vector<int> bindexes;
+  std::vector<std::vector<int>> visData;
+  std::vector<std::vector<int>> visData2;
 
   Soption(void);
 
-  void init(const std::string prefix, const std::string option);
+  void Init(const std::string prefix, const std::string option);
 
 protected:
   void initOimages(void);

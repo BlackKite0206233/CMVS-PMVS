@@ -5,36 +5,36 @@
 #include "../numeric/vec4.h"
 
 namespace PMVS3 {
-class Cpoint {
+class Point {
 public:
-  Cpoint(void);
-  virtual ~Cpoint();
+  Point(void);
+  virtual ~Point();
 
-  Vec3f m_icoord;
-  float m_response;
+  Vec3f iCoord;
+  float response;
 
   // 0: Harris
   // 1: DoG
-  int m_type;
+  int type;
 
   // tempporary variable, used to store original imageid in initial match
-  int m_itmp;
+  int iTmp;
 
   // 3D coordinate
-  Vec4f m_coord;
+  Vec4f coord;
 
-  bool operator<(const Cpoint &rhs) const {
-    return m_response < rhs.m_response;
+  bool operator<(const Point &rhs) const {
+    return response < rhs.response;
   }
 
-  friend std::istream &operator>>(std::istream &istr, Cpoint &rhs);
-  friend std::ostream &operator<<(std::ostream &ostr, const Cpoint &rhs);
+  friend std::istream &operator>>(std::istream &istr, Point &rhs);
+  friend std::ostream &operator<<(std::ostream &ostr, const Point &rhs);
 };
 
-bool SortCpoint(const Cpoint &a, const Cpoint &b);
+bool SortCpoint(const Point &a, const Point &b);
 
-std::istream &operator>>(std::istream &istr, Cpoint &rhs);
-std::ostream &operator<<(std::ostream &ostr, const Cpoint &rhs);
+std::istream &operator>>(std::istream &istr, Point &rhs);
+std::ostream &operator<<(std::ostream &ostr, const Point &rhs);
 }; // namespace PMVS3
 
 #endif // PMVS3_POINT_H

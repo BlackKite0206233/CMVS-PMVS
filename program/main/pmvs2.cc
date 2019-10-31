@@ -36,12 +36,21 @@ int main(int argc, char *argv[]) {
   }
   cout << std::endl;
 
-  PMVS3::Soption option;
-  option.init(argv[1], argv[2]);
+  clock_t begin = clock();
 
-  PMVS3::CfindMatch findMatch;
-  findMatch.init(option);
-  findMatch.run();
+  PMVS3::Soption   option;
+  PMVS3::FindMatch findMatch;
+  {
+	option.Init(argv[1], argv[2]);
+
+	findMatch.Init(option);
+	findMatch.Run();
+  }
+
+  clock_t end = clock();
+  double time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
+
+  cout << "total time: " << time_spent << endl;
 
   bool bExportPLY   = true;
   bool bExportPatch = false;
@@ -57,5 +66,5 @@ int main(int argc, char *argv[]) {
 
   char buffer[1024];
   sprintf(buffer, "%smodels/%s", argv[1], argv[2]);
-  findMatch.write(buffer, bExportPLY, bExportPatch, bExportPSet);
+  findMatch.Write(buffer, bExportPLY, bExportPatch, bExportPSet);
 }

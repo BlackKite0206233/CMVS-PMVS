@@ -274,8 +274,8 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClCompile Include="D:\github\CMVS-PMVS\program\base\image\image.cc" />
     <ClInclude Include="D:\github\CMVS-PMVS\program\base\image\photo.h" />
     <ClCompile Include="D:\github\CMVS-PMVS\program\base\image\photo.cc" />
-    <ClInclude Include="D:\github\CMVS-PMVS\program\base\image\photoSetS.h" />
-    <ClCompile Include="D:\github\CMVS-PMVS\program\base\image\photoSetS.cc" />
+    <ClInclude Include="..\..\program\base\image\photoSet.h" />
+    <ClCompile Include="..\..\program\base\image\photoSet.cc" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="D:\github\CMVS-PMVS\ZERO_CHECK.vcxproj">

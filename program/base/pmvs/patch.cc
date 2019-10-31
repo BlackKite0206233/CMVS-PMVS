@@ -4,10 +4,10 @@
 
 using namespace std;
 
-std::istream &Patch::operator>>(std::istream &istr, Cpatch &rhs) {
+std::istream &ptch::operator>>(std::istream &istr, Patch &rhs) {
   string header;
   int itmp;
-  istr >> header >> rhs.m_coord >> rhs.m_normal >> rhs.m_ncc >> rhs.m_dscale >> rhs.m_ascale;
+  istr >> header >> rhs.coord >> rhs.normal >> rhs.ncc >> rhs.dScale >> rhs.aScale;
 
   if (header == "PATCHA") {
     int type;
@@ -16,31 +16,31 @@ std::istream &Patch::operator>>(std::istream &istr, Cpatch &rhs) {
   }
 
   istr >> itmp;
-  rhs.m_images.resize(itmp);
+  rhs.images.resize(itmp);
   for (int i = 0; i < itmp; ++i)
-    istr >> rhs.m_images[i];
+    istr >> rhs.images[i];
 
   istr >> itmp;
-  rhs.m_vimages.resize(itmp);
+  rhs.vImages.resize(itmp);
   for (int i = 0; i < itmp; ++i)
-    istr >> rhs.m_vimages[i];
+    istr >> rhs.vImages[i];
 
   return istr;
 }
 
-std::ostream &Patch::operator<<(std::ostream &ostr, const Cpatch &rhs) {
+std::ostream &ptch::operator<<(std::ostream &ostr, const Patch &rhs) {
   ostr << "PATCHS" << endl
-       << rhs.m_coord << endl
-       << rhs.m_normal << endl
-       << rhs.m_ncc << ' ' << rhs.m_dscale << ' ' << rhs.m_ascale << endl
-       << (int)rhs.m_images.size() << endl;
-  for (int i = 0; i < (int)rhs.m_images.size(); ++i)
-    ostr << rhs.m_images[i] << ' ';
+       << rhs.coord << endl
+       << rhs.normal << endl
+       << rhs.ncc << ' ' << rhs.dScale << ' ' << rhs.aScale << endl
+       << (int)rhs.images.size() << endl;
+  for (int i = 0; i < (int)rhs.images.size(); ++i)
+    ostr << rhs.images[i] << ' ';
   ostr << endl;
 
-  ostr << (int)rhs.m_vimages.size() << endl;
-  for (int i = 0; i < (int)rhs.m_vimages.size(); ++i)
-    ostr << rhs.m_vimages[i] << ' ';
+  ostr << (int)rhs.vImages.size() << endl;
+  for (int i = 0; i < (int)rhs.vImages.size(); ++i)
+    ostr << rhs.vImages[i] << ' ';
   ostr << endl;
 
   return ostr;

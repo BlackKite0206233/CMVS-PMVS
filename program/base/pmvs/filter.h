@@ -7,18 +7,18 @@
 
 namespace PMVS3 {
 
-class CfindMatch;
+class FindMatch;
 
-class Cfilter {
+class Filter {
 public:
-  Cfilter(CfindMatch &findMatch);
+  Filter(FindMatch &findMatch);
 
-  void init(void);
-  void run(void);
+  void Init(void);
+  void Run(void);
 
-  float computeGain(const Patch::Cpatch &patch, const int lock);
+  float ComputeGain(const ptch::Patch &patch, const int lock);
 
-  bool filterQuad(const Patch::Cpatch &patch, const std::vector<Patch::Ppatch> &neighbors) const;
+  bool FilterQuad(const ptch::Patch &patch, const std::vector<ptch::pPatch> &neighbors) const;
 
 protected:
   void filterOutside(void);
@@ -37,13 +37,13 @@ protected:
 
   void setConf(const int image);
 
-  std::vector<float> m_gains;
+  std::vector<float> gains;
 
-  std::vector<std::vector<int>> m_newimages, m_removeimages;
-  std::vector<std::vector<TVec2<int>>> m_newgrids, m_removegrids;
+  std::vector<std::vector<int>> newImages, removeImages;
+  std::vector<std::vector<TVec2<int>>> newGrids, removeGrids;
 
-  int m_time;
-  std::vector<int> m_rejects;
+  int t_time;
+  std::vector<int> rejects;
 
   //----------------------------------------------------------------------
   // Thread related
@@ -60,7 +60,7 @@ protected:
   void filterNeighborThread(void);
   static int filterNeighborThreadTmp(void *arg);
 
-  CfindMatch &m_fm;
+  FindMatch &fm;
 };
 }; // namespace PMVS3
 

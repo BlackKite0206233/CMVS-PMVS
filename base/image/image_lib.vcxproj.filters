@@ -10,7 +10,7 @@
     <ClCompile Include="D:\github\CMVS-PMVS\program\base\image\photo.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="D:\github\CMVS-PMVS\program\base\image\photoSetS.cc">
+    <ClCompile Include="..\..\program\base\image\photoSet.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -24,7 +24,7 @@
     <ClInclude Include="D:\github\CMVS-PMVS\program\base\image\photo.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="D:\github\CMVS-PMVS\program\base\image\photoSetS.h">
+    <ClInclude Include="..\..\program\base\image\photoSet.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

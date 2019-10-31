@@ -4,87 +4,87 @@
 #include <numeric>
 #include <time.h>
 
-using namespace Image;
+using namespace img;
 using namespace PMVS3;
-using namespace Patch;
+using namespace ptch;
 using namespace std;
 
-Cseed::Cseed(CfindMatch &findMatch) : m_fm(findMatch) {}
+Seed::Seed(FindMatch &findMatch) : fm(findMatch) {}
 
-void Cseed::init(const std::vector<std::vector<Cpoint>> &points) {
-  m_ppoints.clear();
-  m_ppoints.resize(m_fm.m_num);
+void Seed::Init(const std::vector<std::vector<Point>> &points) {
+  pPoints.clear();
+  pPoints.resize(fm.num);
 
-  for (int index = 0; index < m_fm.m_num; ++index) {
-    const int gheight = m_fm.m_pos.m_gheights[index];
-    const int gwidth  = m_fm.m_pos.m_gwidths[index];
-    m_ppoints[index].resize(gwidth * gheight);
+  for (int index = 0; index < fm.num; ++index) {
+    const int gheight = fm.po.gHeights[index];
+    const int gwidth  = fm.po.gWidths[index];
+    pPoints[index].resize(gwidth * gheight);
   }
 
   readPoints(points);
 }
 
-void Cseed::readPoints(const std::vector<std::vector<Cpoint>> &points) {
-  for (int index = 0; index < m_fm.m_num; ++index) {
+void Seed::readPoints(const std::vector<std::vector<Point>> &points) {
+  for (int index = 0; index < fm.num; ++index) {
     for (int i = 0; i < (int)points[index].size(); ++i) {
-      Ppoint ppoint(new Cpoint(points[index][i]));
-      ppoint->m_itmp = index;
-      const int ix = ((int)floor(ppoint->m_icoord[0] + 0.5f)) / m_fm.m_csize;
-      const int iy = ((int)floor(ppoint->m_icoord[1] + 0.5f)) / m_fm.m_csize;
-      const int index2 = iy * m_fm.m_pos.m_gwidths[index] + ix;
-      m_ppoints[index][index2].push_back(ppoint);
+      pPoint ppoint(new Point(points[index][i]));
+      ppoint->iTmp = index;
+      const int ix = ((int)floor(ppoint->iCoord[0] + 0.5f)) / fm.cSize;
+      const int iy = ((int)floor(ppoint->iCoord[1] + 0.5f)) / fm.cSize;
+      const int index2 = iy * fm.po.gWidths[index] + ix;
+      pPoints[index][index2].push_back(ppoint);
     }
   }
 }
 
-void Cseed::run(void) {
-  m_fm.m_count = 0;
-  m_fm.m_jobs.clear();
-  m_scounts.resize(m_fm.m_CPU);
-  m_fcounts0.resize(m_fm.m_CPU);
-  m_fcounts1.resize(m_fm.m_CPU);
-  m_pcounts.resize(m_fm.m_CPU);
-  fill(m_scounts.begin(),  m_scounts.end(),  0);
-  fill(m_fcounts0.begin(), m_fcounts0.end(), 0);
-  fill(m_fcounts1.begin(), m_fcounts1.end(), 0);
-  fill(m_pcounts.begin(),  m_pcounts.end(),  0);
+void Seed::Run(void) {
+  fm.count = 0;
+  fm.jobs.clear();
+  sCounts.resize(fm.CPU);
+  fCounts0.resize(fm.CPU);
+  fCounts1.resize(fm.CPU);
+  pCounts.resize(fm.CPU);
+  fill(sCounts.begin(),  sCounts.end(),  0);
+  fill(fCounts0.begin(), fCounts0.end(), 0);
+  fill(fCounts1.begin(), fCounts1.end(), 0);
+  fill(pCounts.begin(),  pCounts.end(),  0);
 
   vector<int> vitmp;
-  for (int i = 0; i < m_fm.m_tnum; ++i)
+  for (int i = 0; i < fm.tNum; ++i)
     vitmp.push_back(i);
 
   random_shuffle(vitmp.begin(), vitmp.end());
-  m_fm.m_jobs.insert(m_fm.m_jobs.end(), vitmp.begin(), vitmp.end());
+  fm.jobs.insert(fm.jobs.end(), vitmp.begin(), vitmp.end());
 
   cerr << "adding seeds " << endl;
 
-  m_fm.m_pos.clearCounts();
+  fm.po.ClearCounts();
 
   // If there already exists a patch, don't use
-  for (int index = 0; index < (int)m_fm.m_tnum; ++index) {
-    for (int j = 0; j < (int)m_fm.m_pos.m_pgrids[index].size(); ++j) {
-      if (!m_fm.m_pos.m_pgrids[index][j].empty())
-        m_fm.m_pos.m_counts[index][j] = m_fm.m_countThreshold2;
+  for (int index = 0; index < (int)fm.tNum; ++index) {
+    for (int j = 0; j < (int)fm.po.pGrids[index].size(); ++j) {
+      if (!fm.po.pGrids[index][j].empty())
+        fm.po.counts[index][j] = fm.countThreshold2;
     }
   }
 
   time_t tv;
   time(&tv);
   time_t curtime = tv;
-  vector<thrd_t> threads(m_fm.m_CPU);
-  for (int i = 0; i < m_fm.m_CPU; ++i)
+  vector<thrd_t> threads(fm.CPU);
+  for (int i = 0; i < fm.CPU; ++i)
     thrd_create(&threads[i], &initialMatchThreadTmp, (void *)this);
-  for (int i = 0; i < m_fm.m_CPU; ++i)
+  for (int i = 0; i < fm.CPU; ++i)
     thrd_join(threads[i], NULL);
   //----------------------------------------------------------------------
   cerr << "done" << endl;
   time(&tv);
   cerr << "---- Initial: " << (tv - curtime) / CLOCKS_PER_SEC << " secs ----" << endl;
 
-  const int trial = accumulate(m_scounts.begin(),  m_scounts.end(),  0);
-  const int fail0 = accumulate(m_fcounts0.begin(), m_fcounts0.end(), 0);
-  const int fail1 = accumulate(m_fcounts1.begin(), m_fcounts1.end(), 0);
-  const int pass  = accumulate(m_pcounts.begin(),  m_pcounts.end(),  0);
+  const int trial = accumulate(sCounts.begin(),  sCounts.end(),  0);
+  const int fail0 = accumulate(fCounts0.begin(), fCounts0.end(), 0);
+  const int fail1 = accumulate(fCounts1.begin(), fCounts1.end(), 0);
+  const int pass  = accumulate(pCounts.begin(),  pCounts.end(),  0);
   cerr << "Total pass fail0 fail1 refinepatch: "   << trial << ' ' << pass << ' ' << fail0 << ' ' << fail1 << ' ' << pass + fail1 << endl;
   cerr << "Total pass fail0 fail1 refinepatch: "   << 100 * trial / (float)trial
        << ' ' << 100 * pass           / (float)trial 
@@ -93,19 +93,19 @@ void Cseed::run(void) {
        << ' ' << 100 * (pass + fail1) / (float)trial << endl;
 }
 
-void Cseed::initialMatchThread(void) {
-  mtx_lock(&m_fm.m_lock);
-  const int id = m_fm.m_count++;
-  mtx_unlock(&m_fm.m_lock);
+void Seed::initialMatchThread(void) {
+  mtx_lock(&fm.lock);
+  const int id = fm.count++;
+  mtx_unlock(&fm.lock);
 
   while (1) {
     int index = -1;
-    mtx_lock(&m_fm.m_lock);
-    if (!m_fm.m_jobs.empty()) {
-      index = m_fm.m_jobs.front();
-      m_fm.m_jobs.pop_front();
+    mtx_lock(&fm.lock);
+    if (!fm.jobs.empty()) {
+      index = fm.jobs.front();
+      fm.jobs.pop_front();
     }
-    mtx_unlock(&m_fm.m_lock);
+    mtx_unlock(&fm.lock);
     if (index == -1)
       break;
 
@@ -113,19 +113,19 @@ void Cseed::initialMatchThread(void) {
   }
 }
 
-int Cseed::initialMatchThreadTmp(void *arg) {
-  ((Cseed *)arg)->initialMatchThread();
+int Seed::initialMatchThreadTmp(void *arg) {
+  ((Seed *)arg)->initialMatchThread();
   return 0;
 }
 
-void Cseed::clear(void) { vector<vector<vector<Ppoint>>>().swap(m_ppoints); }
+void Seed::Clear(void) { vector<vector<vector<pPoint>>>().swap(pPoints); }
 
-void Cseed::initialMatch(const int index, const int id) {
+void Seed::initialMatch(const int index, const int id) {
   vector<int> indexes;
-  m_fm.m_optim.collectImages(index, indexes);
+  fm.optim.CollectImages(index, indexes);
 
-  if (m_fm.m_tau < (int)indexes.size())
-    indexes.resize(m_fm.m_tau);
+  if (fm.tau < (int)indexes.size())
+    indexes.resize(fm.tau);
 
   if (indexes.empty())
     return;
@@ -134,8 +134,8 @@ void Cseed::initialMatch(const int index, const int id) {
   //======================================================================
   // for each feature point, starting from the optical center, keep on
   // matching until we find candidateThreshold patches
-  const int gheight = m_fm.m_pos.m_gheights[index];
-  const int gwidth  = m_fm.m_pos.m_gwidths[index];
+  const int gheight = fm.po.gHeights[index];
+  const int gwidth  = fm.po.gWidths[index];
 
   int index2 = -1;
   for (int y = 0; y < gheight; ++y) {
@@ -144,44 +144,44 @@ void Cseed::initialMatch(const int index, const int id) {
       if (!canAdd(index, x, y))
         continue;
 
-      for (int p = 0; p < (int)m_ppoints[index][index2].size(); ++p) {
+      for (int p = 0; p < (int)pPoints[index][index2].size(); ++p) {
         // collect features that satisfies epipolar geometry
         // constraints and sort them according to the differences of
         // distances between two cameras.
-        vector<Ppoint> vcp;
-        collectCandidates(index, indexes, *m_ppoints[index][index2][p], vcp);
+        vector<pPoint> vcp;
+        collectCandidates(index, indexes, *pPoints[index][index2][p], vcp);
 
         int count = 0;
-        Cpatch bestpatch;
+        Patch bestpatch;
         //======================================================================
         for (int i = 0; i < (int)vcp.size(); ++i) {
-          Cpatch patch;
-          patch.m_coord  = vcp[i]->m_coord;
-          patch.m_normal = m_fm.m_pss.m_photos[index].m_center - patch.m_coord;
+          Patch patch;
+          patch.coord  = vcp[i]->coord;
+          patch.normal = fm.ps.photos[index].center - patch.coord;
 
-          unitize(patch.m_normal);
-          patch.m_normal[3] = 0.0;
-          patch.m_flag = 0;
+          unitize(patch.normal);
+          patch.normal[3] = 0.0;
+          patch.flag = 0;
 
-          ++m_fm.m_pos.m_counts[index][index2];
-          const int ix = ((int)floor(vcp[i]->m_icoord[0] + 0.5f)) / m_fm.m_csize;
-          const int iy = ((int)floor(vcp[i]->m_icoord[1] + 0.5f)) / m_fm.m_csize;
-          const int index3 = iy * m_fm.m_pos.m_gwidths[vcp[i]->m_itmp] + ix;
-          if (vcp[i]->m_itmp < m_fm.m_tnum)
-            ++m_fm.m_pos.m_counts[vcp[i]->m_itmp][index3];
+          ++fm.po.counts[index][index2];
+          const int ix = ((int)floor(vcp[i]->iCoord[0] + 0.5f)) / fm.cSize;
+          const int iy = ((int)floor(vcp[i]->iCoord[1] + 0.5f)) / fm.cSize;
+          const int index3 = iy * fm.po.gWidths[vcp[i]->iTmp] + ix;
+          if (vcp[i]->iTmp < fm.tNum)
+            ++fm.po.counts[vcp[i]->iTmp][index3];
 
-          const int flag = initialMatchSub(index, vcp[i]->m_itmp, id, patch);
+          const int flag = initialMatchSub(index, vcp[i]->iTmp, id, patch);
           if (flag == 0) {
             ++count;
-            if (bestpatch.score(m_fm.m_nccThreshold) < patch.score(m_fm.m_nccThreshold))
+            if (bestpatch.Score(fm.nccThreshold) < patch.Score(fm.nccThreshold))
               bestpatch = patch;
-            if (m_fm.m_countThreshold0 <= count)
+            if (fm.countThreshold0 <= count)
               break;
           }
         }
         if (count != 0) {
-          Ppatch ppatch(new Cpatch(bestpatch));
-          m_fm.m_pos.addPatch(ppatch);
+          pPatch ppatch(new Patch(bestpatch));
+          fm.po.AddPatch(ppatch);
           ++totalcount;
           break;
         }
@@ -191,19 +191,19 @@ void Cseed::initialMatch(const int index, const int id) {
   cerr << '(' << index << ',' << totalcount << ')' << flush;
 }
 
-void Cseed::collectCells(const int index0, const int index1, const Cpoint &p0, std::vector<Vec2i> &cells) {
-  Vec3 point(p0.m_icoord[0], p0.m_icoord[1], p0.m_icoord[2]);
+void Seed::collectCells(const int index0, const int index1, const Point &p0, std::vector<Vec2i> &cells) {
+  Vec3 point(p0.iCoord[0], p0.iCoord[1], p0.iCoord[2]);
 #ifdef DEBUG
-  if (p0.m_icoord[2] != 1.0f) {
+  if (p0.iCoord[2] != 1.0f) {
     cerr << "Impossible in collectCells" << endl;
     exit(1);
   }
 #endif
 
   Mat3 F;
-  Image::setF(m_fm.m_pss.m_photos[index0], m_fm.m_pss.m_photos[index1], F, m_fm.m_level);
-  const int gwidth  = m_fm.m_pos.m_gwidths[index1];
-  const int gheight = m_fm.m_pos.m_gheights[index1];
+  img::SetF(fm.ps.photos[index0], fm.ps.photos[index1], F, fm.level);
+  const int gwidth  = fm.po.gWidths[index1];
+  const int gheight = fm.po.gHeights[index1];
 
   Vec3 line = transpose(F) * point;
   if (line[0] == 0.0 && line[1] == 0.0) {
@@ -213,11 +213,11 @@ void Cseed::collectCells(const int index0, const int index1, const Cpoint &p0, s
   // vertical
   if (fabs(line[0]) > fabs(line[1])) {
     for (int y = 0; y < gheight; ++y) {
-      const float fy = (y + 0.5) * m_fm.m_csize - 0.5f;
+      const float fy = (y + 0.5) * fm.cSize - 0.5f;
       float fx = (-line[1] * fy - line[2]) / line[0];
       fx = max((float)(INT_MIN + 3.0f), std::min((float)(INT_MAX - 3.0f), fx));
 
-      const int ix = ((int)floor(fx + 0.5f)) / m_fm.m_csize;
+      const int ix = ((int)floor(fx + 0.5f)) / fm.cSize;
       if (0 <= ix && ix < gwidth)
         cells.push_back(TVec2<int>(ix, y));
       if (0 <= ix - 1 && ix - 1 < gwidth)
@@ -227,11 +227,11 @@ void Cseed::collectCells(const int index0, const int index1, const Cpoint &p0, s
     }
   } else {
     for (int x = 0; x < gwidth; ++x) {
-      const float fx = (x + 0.5) * m_fm.m_csize - 0.5f;
+      const float fx = (x + 0.5) * fm.cSize - 0.5f;
       float fy = (-line[0] * fx - line[2]) / line[1];
       fy = max((float)(INT_MIN + 3.0f), std::min((float)(INT_MAX - 3.0f), fy));
 
-      const int iy = ((int)floor(fy + 0.5f)) / m_fm.m_csize;
+      const int iy = ((int)floor(fy + 0.5f)) / fm.cSize;
       if (0 <= iy && iy < gheight)
         cells.push_back(TVec2<int>(x, iy));
       if (0 <= iy - 1 && iy - 1 < gheight)
@@ -244,35 +244,35 @@ void Cseed::collectCells(const int index0, const int index1, const Cpoint &p0, s
 
 // make sorted array of feature points in images, that satisfy the
 // epipolar geometry coming from point in image
-void Cseed::collectCandidates(const int index, const std::vector<int> &indexes, const Cpoint &point, std::vector<Ppoint> &vcp) {
-  const Vec3 p0(point.m_icoord[0], point.m_icoord[1], 1.0);
+void Seed::collectCandidates(const int index, const std::vector<int> &indexes, const Point &point, std::vector<pPoint> &vcp) {
+  const Vec3 p0(point.iCoord[0], point.iCoord[1], 1.0);
   for (int i = 0; i < (int)indexes.size(); ++i) {
     const int indexid = indexes[i];
 
     vector<TVec2<int>> cells;
     collectCells(index, indexid, point, cells);
     Mat3 F;
-    Image::setF(m_fm.m_pss.m_photos[index], m_fm.m_pss.m_photos[indexid], F, m_fm.m_level);
+    img::SetF(fm.ps.photos[index], fm.ps.photos[indexid], F, fm.level);
 
     for (int i = 0; i < (int)cells.size(); ++i) {
       const int x = cells[i][0];
       const int y = cells[i][1];
       if (!canAdd(indexid, x, y))
         continue;
-      const int index2 = y * m_fm.m_pos.m_gwidths[indexid] + x;
+      const int index2 = y * fm.po.gWidths[indexid] + x;
 
-      vector<Ppoint>::iterator begin = m_ppoints[indexid][index2].begin();
-      vector<Ppoint>::iterator end   = m_ppoints[indexid][index2].end();
+      vector<pPoint>::iterator begin = pPoints[indexid][index2].begin();
+      vector<pPoint>::iterator end   = pPoints[indexid][index2].end();
       while (begin != end) {
-        Cpoint &rhs = **begin;
+        Point &rhs = **begin;
         // ? use type to reject candidates?
-        if (point.m_type != rhs.m_type) {
+        if (point.type != rhs.type) {
           ++begin;
           continue;
         }
 
-        const Vec3 p1(rhs.m_icoord[0], rhs.m_icoord[1], 1.0);
-        if (m_fm.m_epThreshold <= Image::computeEPD(F, p0, p1)) {
+        const Vec3 p1(rhs.iCoord[0], rhs.iCoord[1], 1.0);
+        if (fm.epThreshold <= img::ComputeEPD(F, p0, p1)) {
           ++begin;
           continue;
         }
@@ -282,20 +282,20 @@ void Cseed::collectCandidates(const int index, const std::vector<int> &indexes, 
     }
   }
 
-  // set distances to m_response
-  vector<Ppoint> vcptmp;
+  // set distances to response
+  vector<pPoint> vcptmp;
   for (int i = 0; i < (int)vcp.size(); ++i) {
-    unproject(index, vcp[i]->m_itmp, point, *vcp[i], vcp[i]->m_coord);
+    unproject(index, vcp[i]->iTmp, point, *vcp[i], vcp[i]->coord);
 
-    if (m_fm.m_pss.m_photos[index].m_projection[m_fm.m_level][2] * vcp[i]->m_coord <= 0.0)
+    if (fm.ps.photos[index].projection[fm.level][2] * vcp[i]->coord <= 0.0)
       continue;
 
-    if (!m_fm.m_pss.getMask(vcp[i]->m_coord, m_fm.m_level) || !m_fm.insideBimages(vcp[i]->m_coord))
+    if (!fm.ps.GetMask(vcp[i]->coord, fm.level) || !fm.InsideBimages(vcp[i]->coord))
       continue;
 
     //??? from the closest
-    vcp[i]->m_response = fabs(norm(vcp[i]->m_coord - m_fm.m_pss.m_photos[index].m_center) - 
-                              norm(vcp[i]->m_coord - m_fm.m_pss.m_photos[vcp[i]->m_itmp].m_center));
+    vcp[i]->response = fabs(norm(vcp[i]->coord - fm.ps.photos[index].center) - 
+                              norm(vcp[i]->coord - fm.ps.photos[vcp[i]->iTmp].center));
 
     vcptmp.push_back(vcp[i]);
   }
@@ -303,46 +303,46 @@ void Cseed::collectCandidates(const int index, const std::vector<int> &indexes, 
   sort(vcp.begin(), vcp.end());
 }
 
-bool Cseed::canAdd(const int index, const int x, const int y) {
-  if (!m_fm.m_pss.getMask(index, m_fm.m_csize * x, m_fm.m_csize * y, m_fm.m_level))
+bool Seed::canAdd(const int index, const int x, const int y) {
+  if (!fm.ps.GetMask(index, fm.cSize * x, fm.cSize * y, fm.level))
     return false;
 
-  const int index2 = y * m_fm.m_pos.m_gwidths[index] + x;
+  const int index2 = y * fm.po.gWidths[index] + x;
 
-  if (m_fm.m_tnum <= index)
+  if (fm.tNum <= index)
     return true;
 
-  // Check if m_pgrids already contains something
-  if (!m_fm.m_pos.m_pgrids[index][index2].empty())
+  // Check if pGrids already contains something
+  if (!fm.po.pGrids[index][index2].empty())
     return false;
 
   //??? critical
-  if (m_fm.m_countThreshold2 <= m_fm.m_pos.m_counts[index][index2])
+  if (fm.countThreshold2 <= fm.po.counts[index][index2])
     return false;
 
   return true;
 }
 
-void Cseed::unproject(const int index0, const int index1, const Cpoint &p0, const Cpoint &p1, Vec4f &coord) const {
+void Seed::unproject(const int index0, const int index1, const Point &p0, const Point &p1, Vec4f &coord) const {
   Mat4 A;
-  A[0][0] = m_fm.m_pss.m_photos[index0].m_projection[m_fm.m_level][0][0] - p0.m_icoord[0] * m_fm.m_pss.m_photos[index0].m_projection[m_fm.m_level][2][0];
-  A[0][1] = m_fm.m_pss.m_photos[index0].m_projection[m_fm.m_level][0][1] - p0.m_icoord[0] * m_fm.m_pss.m_photos[index0].m_projection[m_fm.m_level][2][1];
-  A[0][2] = m_fm.m_pss.m_photos[index0].m_projection[m_fm.m_level][0][2] - p0.m_icoord[0] * m_fm.m_pss.m_photos[index0].m_projection[m_fm.m_level][2][2];
-  A[1][0] = m_fm.m_pss.m_photos[index0].m_projection[m_fm.m_level][1][0] - p0.m_icoord[1] * m_fm.m_pss.m_photos[index0].m_projection[m_fm.m_level][2][0];
-  A[1][1] = m_fm.m_pss.m_photos[index0].m_projection[m_fm.m_level][1][1] - p0.m_icoord[1] * m_fm.m_pss.m_photos[index0].m_projection[m_fm.m_level][2][1];
-  A[1][2] = m_fm.m_pss.m_photos[index0].m_projection[m_fm.m_level][1][2] - p0.m_icoord[1] * m_fm.m_pss.m_photos[index0].m_projection[m_fm.m_level][2][2];
-  A[2][0] = m_fm.m_pss.m_photos[index1].m_projection[m_fm.m_level][0][0] - p1.m_icoord[0] * m_fm.m_pss.m_photos[index1].m_projection[m_fm.m_level][2][0];
-  A[2][1] = m_fm.m_pss.m_photos[index1].m_projection[m_fm.m_level][0][1] - p1.m_icoord[0] * m_fm.m_pss.m_photos[index1].m_projection[m_fm.m_level][2][1];
-  A[2][2] = m_fm.m_pss.m_photos[index1].m_projection[m_fm.m_level][0][2] - p1.m_icoord[0] * m_fm.m_pss.m_photos[index1].m_projection[m_fm.m_level][2][2];
-  A[3][0] = m_fm.m_pss.m_photos[index1].m_projection[m_fm.m_level][1][0] - p1.m_icoord[1] * m_fm.m_pss.m_photos[index1].m_projection[m_fm.m_level][2][0];
-  A[3][1] = m_fm.m_pss.m_photos[index1].m_projection[m_fm.m_level][1][1] - p1.m_icoord[1] * m_fm.m_pss.m_photos[index1].m_projection[m_fm.m_level][2][1];
-  A[3][2] = m_fm.m_pss.m_photos[index1].m_projection[m_fm.m_level][1][2] - p1.m_icoord[1] * m_fm.m_pss.m_photos[index1].m_projection[m_fm.m_level][2][2];
+  A[0][0] = fm.ps.photos[index0].projection[fm.level][0][0] - p0.iCoord[0] * fm.ps.photos[index0].projection[fm.level][2][0];
+  A[0][1] = fm.ps.photos[index0].projection[fm.level][0][1] - p0.iCoord[0] * fm.ps.photos[index0].projection[fm.level][2][1];
+  A[0][2] = fm.ps.photos[index0].projection[fm.level][0][2] - p0.iCoord[0] * fm.ps.photos[index0].projection[fm.level][2][2];
+  A[1][0] = fm.ps.photos[index0].projection[fm.level][1][0] - p0.iCoord[1] * fm.ps.photos[index0].projection[fm.level][2][0];
+  A[1][1] = fm.ps.photos[index0].projection[fm.level][1][1] - p0.iCoord[1] * fm.ps.photos[index0].projection[fm.level][2][1];
+  A[1][2] = fm.ps.photos[index0].projection[fm.level][1][2] - p0.iCoord[1] * fm.ps.photos[index0].projection[fm.level][2][2];
+  A[2][0] = fm.ps.photos[index1].projection[fm.level][0][0] - p1.iCoord[0] * fm.ps.photos[index1].projection[fm.level][2][0];
+  A[2][1] = fm.ps.photos[index1].projection[fm.level][0][1] - p1.iCoord[0] * fm.ps.photos[index1].projection[fm.level][2][1];
+  A[2][2] = fm.ps.photos[index1].projection[fm.level][0][2] - p1.iCoord[0] * fm.ps.photos[index1].projection[fm.level][2][2];
+  A[3][0] = fm.ps.photos[index1].projection[fm.level][1][0] - p1.iCoord[1] * fm.ps.photos[index1].projection[fm.level][2][0];
+  A[3][1] = fm.ps.photos[index1].projection[fm.level][1][1] - p1.iCoord[1] * fm.ps.photos[index1].projection[fm.level][2][1];
+  A[3][2] = fm.ps.photos[index1].projection[fm.level][1][2] - p1.iCoord[1] * fm.ps.photos[index1].projection[fm.level][2][2];
 
   Vec4 b;
-  b[0] = p0.m_icoord[0] * m_fm.m_pss.m_photos[index0].m_projection[m_fm.m_level][2][3] - m_fm.m_pss.m_photos[index0].m_projection[m_fm.m_level][0][3];
-  b[1] = p0.m_icoord[1] * m_fm.m_pss.m_photos[index0].m_projection[m_fm.m_level][2][3] - m_fm.m_pss.m_photos[index0].m_projection[m_fm.m_level][1][3];
-  b[2] = p1.m_icoord[0] * m_fm.m_pss.m_photos[index1].m_projection[m_fm.m_level][2][3] - m_fm.m_pss.m_photos[index1].m_projection[m_fm.m_level][0][3];
-  b[3] = p1.m_icoord[1] * m_fm.m_pss.m_photos[index1].m_projection[m_fm.m_level][2][3] - m_fm.m_pss.m_photos[index1].m_projection[m_fm.m_level][1][3];
+  b[0] = p0.iCoord[0] * fm.ps.photos[index0].projection[fm.level][2][3] - fm.ps.photos[index0].projection[fm.level][0][3];
+  b[1] = p0.iCoord[1] * fm.ps.photos[index0].projection[fm.level][2][3] - fm.ps.photos[index0].projection[fm.level][1][3];
+  b[2] = p1.iCoord[0] * fm.ps.photos[index1].projection[fm.level][2][3] - fm.ps.photos[index1].projection[fm.level][0][3];
+  b[3] = p1.iCoord[1] * fm.ps.photos[index1].projection[fm.level][2][3] - fm.ps.photos[index1].projection[fm.level][1][3];
 
   Mat4 AT  = transpose(A);
   Mat4 ATA = AT * A;
@@ -365,31 +365,31 @@ void Cseed::unproject(const int index0, const int index1, const Cpoint &p0, cons
 }
 
 // starting with (index, indexs), set visible images by looking at correlation.
-bool Cseed::initialMatchSub(const int index0, const int index1, const int id, Cpatch &patch) {
+bool Seed::initialMatchSub(const int index0, const int index1, const int id, Patch &patch) {
   //----------------------------------------------------------------------
-  patch.m_images.clear();
-  patch.m_images.push_back(index0);
-  patch.m_images.push_back(index1);
+  patch.images.clear();
+  patch.images.push_back(index0);
+  patch.images.push_back(index1);
 
-  ++m_scounts[id];
+  ++sCounts[id];
 
   //----------------------------------------------------------------------
-  // We know that patch.m_coord is inside bimages and inside mask
-  if (m_fm.m_optim.preProcess(patch, id, 1)) {
-    ++m_fcounts0[id];
+  // We know that patch.coord is inside bimages and inside mask
+  if (fm.optim.PreProcess(patch, id, 1)) {
+    ++fCounts0[id];
     return true;
   }
 
   //----------------------------------------------------------------------
-  m_fm.m_optim.refinePatch(patch, id, 100);
+  fm.optim.RefinePatch(patch, id, 100);
 
   //----------------------------------------------------------------------
-  if (m_fm.m_optim.postProcess(patch, id, 1)) {
-    ++m_fcounts1[id];
+  if (fm.optim.PostProcess(patch, id, 1)) {
+    ++fCounts1[id];
     return true;
   }
 
-  ++m_pcounts[id];
+  ++pCounts[id];
   //----------------------------------------------------------------------
   return false;
 }

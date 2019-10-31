@@ -5,39 +5,39 @@
  * A main class to detect features
  */
 
-#include "../image/photoSetS.h"
+#include "../image/photoSet.h"
 #include "point.h"
 #include "tinycthread.h"
 #include <list>
 #include <string>
 
-namespace Image {
-class CphotoSetS;
+namespace img {
+class PhotoSet;
 };
 
 namespace PMVS3 {
 
-class CdetectFeatures {
+class DetectFeatures {
 public:
-  CdetectFeatures(void);
-  virtual ~CdetectFeatures();
+  DetectFeatures(void);
+  virtual ~DetectFeatures();
 
-  void run(const Image::CphotoSetS &pss, const int num, const int csize, const int level, const int CPU = 1);
+  void Run(const img::PhotoSet &pss, const int num, const int csize, const int level, const int CPU = 1);
 
-  std::vector<std::vector<Cpoint>> m_points;
+  std::vector<std::vector<Point>> points;
 
 protected:
-  const Image::CphotoSetS *m_ppss;
-  int m_csize;
-  int m_level;
+  const img::PhotoSet *ps;
+  int cSize;
+  int level;
 
   //----------------------------------------------------------------------
   // thread related
   //----------------------------------------------------------------------
-  mtx_t m_rwlock;
-  int m_CPU;
+  mtx_t rwLock;
+  int CPU;
 
-  std::list<int> m_jobs;
+  std::list<int> jobs;
 
   void runThread(void);
   static int runThreadTmp(void *arg);

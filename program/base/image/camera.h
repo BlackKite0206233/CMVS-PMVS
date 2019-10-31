@@ -9,86 +9,86 @@
 #include <string>
 #include <vector>
 
-namespace Image {
+namespace img {
 
-class Ccamera {
+class Camera {
 public:
-  Ccamera(void);
-  virtual ~Ccamera();
+  Camera(void);
+  virtual ~Camera();
 
   // Update projection matrices from intrinsics and extrinsics
-  void updateProjection(void);
+  void UpdateProjection(void);
   // Update all the camera related parameters
-  void updateCamera(void);
+  void UpdateCamera(void);
 
-  virtual void init(const std::string cname, const int maxLevel);
-  void write(const std::string file);
+  virtual void Init(const std::string cname, const int maxlevel);
+  void Write(const std::string file);
 
-  inline Vec3f project(const Vec4f &coord, const int level) const;
-  inline Vec3f mult(const Vec4f &coord, const int level) const;
+  inline Vec3f Project(const Vec4f &coord, const int level) const;
+  inline Vec3f Mult(const Vec4f &coord, const int level) const;
 
-  static void setProjection(const std::vector<float> &intrinsics, const std::vector<float> &extrinsics, std::vector<Vec4f> &projection, const int txtType);
+  static void SetProjection(const std::vector<float> &intrinsics, const std::vector<float> &extrinsics, std::vector<Vec4f> &projection, const int txtType);
 
-  float getScale(const Vec4f &coord, const int level) const;
-  void getPAxes(const Vec4f &coord, const Vec4f &normal, Vec4f &pxaxis, Vec4f &pyaxis, const int level = 0) const;
+  float GetScale(const Vec4f &coord, const int level) const;
+  void GetPAxes(const Vec4f &coord, const Vec4f &normal, Vec4f &pxAxis, Vec4f &pyAxis, const int level = 0) const;
 
-  void setAxesScale(const float axesScale);
+  void SetAxesScale(const float axesScale);
 
-  static void proj2q(Mat4 &mat, double q[6]);
-  static void q2proj(const double q[6], Mat4 &mat);
-  static void setProjectionSub(double params[], std::vector<Vec4f> &projection, const int level);
+  static void Proj2Q(Mat4 &mat, double q[6]);
+  static void Q2Proj(const double q[6], Mat4 &mat);
+  static void SetProjectionSub(double params[], std::vector<Vec4f> &projection, const int level);
 
-  float computeDistance(const Vec4f &point) const;
-  float computeDepth(const Vec4f &point) const;
-  float computeDepthDif(const Vec4f &rhs, const Vec4f &lhs) const;
+  float ComputeDistance(const Vec4f &point) const;
+  float ComputeDepth(const Vec4f &point) const;
+  float ComputeDepthDif(const Vec4f &rhs, const Vec4f &lhs) const;
 
   // Compute where the viewing ray passing through coord intersects
   // with the plane abcd.
-  Vec4f intersect(const Vec4f &coord, const Vec4f &abcd) const;
-  void intersect(const Vec4f &coord, const Vec4f &abcd, Vec4f &cross, float &distance) const;
+  Vec4f Intersect(const Vec4f &coord, const Vec4f &abcd) const;
+  void Intersect(const  Vec4f &coord, const Vec4f &abcd, Vec4f &cross, float &distance) const;
   // Computer a 3D coordinate that projects to a given image
   // coordinate. You can specify a different depth by the third
   // component of icoord.
-  Vec4f unproject(const Vec3f &icoord, const int m_level) const;
+  Vec4f Unproject(const Vec3f &iCoord, const int level) const;
 
-  void setK(Mat3f &K) const;
-  void setRT(Mat4f &RT) const;
+  void SetK(Mat3f &K)   const;
+  void SetRT(Mat4f &RT) const;
 
-  void getR(Mat3f &R) const;
+  void GetR(Mat3f &R) const;
 
   //----------------------------------------------------------------------
   // txt file name
-  std::string m_cname;
+  std::string cName;
   // Optical center
-  Vec4f m_center;
+  Vec4f center;
   // Optical axis
-  Vec4f m_oaxis;
+  Vec4f oAxis;
 
-  float m_ipscale;
+  float ipScale;
   // 3x4 projection matrix
-  std::vector<std::vector<Vec4f>> m_projection;
-  Vec3f m_xaxis;
-  Vec3f m_yaxis;
-  Vec3f m_zaxis;
+  std::vector<std::vector<Vec4f>> projection;
+  Vec3f xAxis;
+  Vec3f yAxis;
+  Vec3f zAxis;
 
   // intrinsic and extrinsic camera parameters. Compact form.
-  std::vector<float> m_intrinsics;
-  std::vector<float> m_extrinsics;
+  std::vector<float> intrinsics;
+  std::vector<float> extrinsics;
   // camera parameter type
-  int m_txtType;
+  int txtType;
 
 protected:
-  int m_maxLevel;
+  int maxLevel;
 
-  float m_axesScale;
+  float axesScale;
 
   Vec4f getOpticalCenter(void) const;
 };
 
-inline Vec3f Ccamera::project(const Vec4f &coord, const int level) const {
+inline Vec3f Camera::Project(const Vec4f &coord, const int level) const {
   Vec3f vtmp;
   for (int i = 0; i < 3; ++i)
-    vtmp[i] = m_projection[level][i] * coord;
+    vtmp[i] = projection[level][i] * coord;
 
   if (vtmp[2] <= 0.0) {
     vtmp[0] = -0xffff;
@@ -104,15 +104,15 @@ inline Vec3f Ccamera::project(const Vec4f &coord, const int level) const {
   return vtmp;
 };
 
-inline Vec3f Ccamera::mult(const Vec4f &coord, const int level) const {
+inline Vec3f Camera::Mult(const Vec4f &coord, const int level) const {
   Vec3f vtmp;
   for (int i = 0; i < 3; ++i)
-    vtmp[i] = m_projection[level][i] * coord;
+    vtmp[i] = projection[level][i] * coord;
 
   return vtmp;
 };
 
-template <class T> float computeEPD(const TMat3<T> &F, const TVec3<T> &p0, const TVec3<T> &p1) {
+template <class T> float ComputeEPD(const TMat3<T> &F, const TVec3<T> &p0, const TVec3<T> &p1) {
   TVec3<T> line = F * p1;
   const T ftmp = sqrt(line[0] * line[0] + line[1] * line[1]);
   if (ftmp == 0.0)
@@ -122,14 +122,14 @@ template <class T> float computeEPD(const TMat3<T> &F, const TVec3<T> &p0, const
   return fabs(line * p0);
 };
 
-template <class T> void setF(const Image::Ccamera &lhs, const Image::Ccamera &rhs, TMat3<T> &F, const int level = 0) {
-  const TVec4<T> &p00 = lhs.m_projection[level][0];
-  const TVec4<T> &p01 = lhs.m_projection[level][1];
-  const TVec4<T> &p02 = lhs.m_projection[level][2];
+template <class T> void SetF(const img::Camera &lhs, const img::Camera &rhs, TMat3<T> &F, const int level = 0) {
+  const TVec4<T> &p00 = lhs.projection[level][0];
+  const TVec4<T> &p01 = lhs.projection[level][1];
+  const TVec4<T> &p02 = lhs.projection[level][2];
 
-  const TVec4<T> &p10 = rhs.m_projection[level][0];
-  const TVec4<T> &p11 = rhs.m_projection[level][1];
-  const TVec4<T> &p12 = rhs.m_projection[level][2];
+  const TVec4<T> &p10 = rhs.projection[level][0];
+  const TVec4<T> &p11 = rhs.projection[level][1];
+  const TVec4<T> &p12 = rhs.projection[level][2];
 
   F[0][0] = det(TMat4<T>(p01, p02, p11, p12));
   F[0][1] = det(TMat4<T>(p01, p02, p12, p10));

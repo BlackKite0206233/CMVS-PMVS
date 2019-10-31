@@ -6,23 +6,24 @@
 #include <set>
 
 namespace PMVS3 {
-class Cdetector {
+class Detector {
 public:
-  static void setGaussD(const float sigmaD, std::vector<float> &gaussD);
-  static void setGaussI(const float sigmaI, std::vector<float> &gaussI);
-  virtual ~Cdetector() {}
+  static void SetGaussD(const float sigmaD, std::vector<float> &gaussD);
+  static void SetGaussI(const float sigmaI, std::vector<float> &gaussI);
+  virtual ~Detector() {}
 
 protected:
-  static float setThreshold(std::multiset<Cpoint> &grid);
+  static float setThreshold(std::multiset<Point> &grid);
   bool isCloseBoundary(const int x, const int y, const int margin) const;
-  int m_width;
-  int m_height;
-  std::vector<std::vector<Vec3f>> m_image;
-  std::vector<std::vector<unsigned char>> m_mask;
+  int width;
+  int height;
+  std::vector<std::vector<Vec3f>> image;
+  std::vector<std::vector<unsigned char>> mask;
 
 public:
   template <class T>
-  void convolveX(std::vector<std::vector<T>> &image, const std::vector<std::vector<unsigned char>> &mask, const std::vector<float> &filter, std::vector<std::vector<T>> &buffer) {
+  void ConvolveX(std::vector<std::vector<T>> &image, const std::vector<std::vector<unsigned char>> &mask, 
+				 const std::vector<float> &filter, std::vector<std::vector<T>> &buffer) {
     const int width  = image[0].size();
     const int height = image.size();
     const int margin = ((int)filter.size()) / 2;
@@ -55,7 +56,8 @@ public:
   }
 
   template <class T>
-  void convolveY(std::vector<std::vector<T>> &image, const std::vector<std::vector<unsigned char>> &mask, const std::vector<float> &filter, std::vector<std::vector<T>> &buffer) {
+  void ConvolveY(std::vector<std::vector<T>> &image, const std::vector<std::vector<unsigned char>> &mask, 
+				 const std::vector<float> &filter, std::vector<std::vector<T>> &buffer) {
     const int width  = image[0].size();
     const int height = image.size();
     const int margin = ((int)filter.size()) / 2;
@@ -87,7 +89,7 @@ public:
   }
 
   template <class T>
-  void convolveX(std::vector<std::vector<T>> &image, const std::vector<float> &filter, std::vector<std::vector<T>> &buffer) {
+  void ConvolveX(std::vector<std::vector<T>> &image, const std::vector<float> &filter, std::vector<std::vector<T>> &buffer) {
     const int width  = image[0].size();
     const int height = image.size();
     const int margin = ((int)filter.size()) / 2;
@@ -111,7 +113,7 @@ public:
   }
 
   template <class T>
-  void convolveY(std::vector<std::vector<T>> &image, const std::vector<float> &filter, std::vector<std::vector<T>> &buffer) {
+  void ConvolveY(std::vector<std::vector<T>> &image, const std::vector<float> &filter, std::vector<std::vector<T>> &buffer) {
     const int width  = image[0].size();
     const int height = image.size();
     const int margin = ((int)filter.size()) / 2;

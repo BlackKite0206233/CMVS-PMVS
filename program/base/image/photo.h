@@ -5,68 +5,69 @@
 #include "camera.h"
 #include "image.h"
 
-namespace Image {
+namespace img {
 
-// Cphoto is an image with camera parameters
-class Cphoto : public Cimage, public Ccamera {
+// Photo is an image with camera parameters
+class Photo : public Image, public Camera {
 public:
-  Cphoto(void);
-  virtual ~Cphoto();
+  Photo(void);
+  virtual ~Photo();
 
-  virtual void init(const std::string name, const std::string mname, const std::string cname, const int maxLevel = 1);
+  virtual void Init(const std::string name, const std::string mName, const std::string cName, const int maxLevel = 1);
 
-  virtual void init(const std::string name, const std::string mname, const std::string ename, const std::string cname, const int maxLevel = 1);
+  virtual void Init(const std::string name, const std::string mName, const std::string eName, const std::string cName, const int maxLevel = 1);
 
   // grabTex given 2D sampling information
-  void grabTex(const int level, const Vec2f &icoord, const Vec2f &xaxis, const Vec2f &yaxis, const int size, std::vector<Vec3f> &tex, const bool normalizef = true) const;
+  void GrabTex(const int level, const Vec2f &iCoord, const Vec2f &xAxis, const Vec2f &yAxis, 
+			   const int size, std::vector<Vec3f> &tex, const bool normalizef = true) const;
 
   // grabTex given 3D sampling information
-  void grabTex(const int level, const Vec4f &coord, const Vec4f &pxaxis, const Vec4f &pyaxis, const Vec4f &pzaxis, 
+  void GrabTex(const int level, const Vec4f &coord, const Vec4f &pxAxis, const Vec4f &pyAxis, const Vec4f &pzAxis, 
                const int size, std::vector<Vec3f> &tex, float &weight, const bool normalizef = true) const;
 
-  inline Vec3f getColor(const float fx, const float fy, const int level) const;
-  inline Vec3f getColor(const Vec4f &coord, const int level) const;
-  inline int getMask(const Vec4f &coord, const int level) const;
-  inline int getEdge(const Vec4f &coord, const int level) const;
+  inline Vec3f GetColor(const float fx, const float fy, const int level) const;
+  inline Vec3f GetColor(const Vec4f &coord, const int level) const;
+  inline int GetMask(const Vec4f &coord, const int level) const;
+  inline int GetEdge(const Vec4f &coord, const int level) const;
 
-  static float idot(const std::vector<Vec3f> &tex0, const std::vector<Vec3f> &tex1);
+  static float Idot(const std::vector<Vec3f> &tex0, const std::vector<Vec3f> &tex1);
 
-  static void idotC(const std::vector<Vec3f> &tex0, const std::vector<Vec3f> &tex1, double *idc);
+  static void IdotC(const std::vector<Vec3f> &tex0, const std::vector<Vec3f> &tex1, double *idc);
 
-  static void normalize(std::vector<Vec3f> &tex);
+  static void Normalize(std::vector<Vec3f> &tex);
 
-  static float ssd(const std::vector<Vec3f> &tex0, const std::vector<Vec3f> &tex1);
+  static float SSD(const std::vector<Vec3f> &tex0, const std::vector<Vec3f> &tex1);
 
 protected:
 };
 
-Vec3f Cphoto::getColor(const float fx, const float fy, const int level) const {
-  return Cimage::getColor(fx, fy, level);
+Vec3f Photo::GetColor(const float fx, const float fy, const int level) const {
+  return Image::GetColor(fx, fy, level);
 };
 
-Vec3f Cphoto::getColor(const Vec4f &coord, const int level) const {
-  const Vec3f icoord = project(coord, level);
-  return Cimage::getColor(icoord[0], icoord[1], level);
+Vec3f Photo::GetColor(const Vec4f &coord, const int level) const {
+  const Vec3f icoord = Project(coord, level);
+  return Image::GetColor(icoord[0], icoord[1], level);
 };
 
-int Cphoto::getMask(const Vec4f &coord, const int level) const {
-  if (m_masks[level].empty())
+int Photo::GetMask(const Vec4f &coord, const int level) const {
+  if (masks[level].empty())
     return 1;
 
-  const Vec3f icoord = project(coord, level);
-  return Cimage::getMask(icoord[0], icoord[1], level);
+  const Vec3f icoord = Project(coord, level);
+  return Image::GetMask(icoord[0], icoord[1], level);
 };
 
-int Cphoto::getEdge(const Vec4f &coord, const int level) const {
-  if (m_edges[level].empty())
+int Photo::GetEdge(const Vec4f &coord, const int level) const {
+  if (edges[level].empty())
     return 1;
 
-  const Vec3f icoord = project(coord, level);
+  const Vec3f iCoord = Project(coord, level);
 
-  if (icoord[0] < 0 || m_widths[level] - 1 <= icoord[0] || icoord[1] < 0 || m_heights[level] - 1 <= icoord[1])
+  if (iCoord[0] < 0 || widths[level] - 1 <= iCoord[0] || iCoord[1] < 0 || heights[level] - 1 <= iCoord[1])
     return 0;
 
-  return Cimage::getEdge(icoord[0], icoord[1], level);
+  return Image::GetEdge(iCoord[0], iCoord[1], level);
 };
 
 }; // namespace Image

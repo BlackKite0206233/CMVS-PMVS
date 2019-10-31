@@ -9,31 +9,31 @@
 
 namespace PMVS3 {
 
-class Charris : public Cdetector {
+class Harris : public Detector {
 public:
-  void run(const std::vector<unsigned char> &image,
+  void Run(const std::vector<unsigned char> &image,
            const std::vector<unsigned char> &mask,
            const std::vector<unsigned char> &edge, const int width,
            const int height, const int gspeedup, const float sigma,
-           std::multiset<Cpoint> &result);
+           std::multiset<Point> &result);
 
-  virtual ~Charris() {}
+  virtual ~Harris() {}
 
 protected:
-  float m_sigmaD;
-  float m_sigmaI;
+  float sigmaD;
+  float sigmaI;
 
-  std::vector<float> m_gaussD;
-  std::vector<float> m_gaussI;
+  std::vector<float> gaussD;
+  std::vector<float> gaussI;
 
-  std::vector<std::vector<Vec3f>> m_dIdx;
-  std::vector<std::vector<Vec3f>> m_dIdy;
+  std::vector<std::vector<Vec3f>> dIdx;
+  std::vector<std::vector<Vec3f>> dIdy;
 
-  std::vector<std::vector<float>> m_dIdxdIdx;
-  std::vector<std::vector<float>> m_dIdydIdy;
-  std::vector<std::vector<float>> m_dIdxdIdy;
+  std::vector<std::vector<float>> dIdxdIdx;
+  std::vector<std::vector<float>> dIdydIdy;
+  std::vector<std::vector<float>> dIdxdIdy;
 
-  std::vector<std::vector<float>> m_response;
+  std::vector<std::vector<float>> response;
 
   void init(const std::vector<unsigned char> &image, const std::vector<unsigned char> &mask, const std::vector<unsigned char> &edge);
 

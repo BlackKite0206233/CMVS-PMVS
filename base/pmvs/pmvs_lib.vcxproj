@@ -288,8 +288,8 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClCompile Include="D:\github\CMVS-PMVS\program\base\pmvs\option.cc" />
     <ClInclude Include="D:\github\CMVS-PMVS\program\base\pmvs\patch.h" />
     <ClCompile Include="D:\github\CMVS-PMVS\program\base\pmvs\patch.cc" />
-    <ClInclude Include="D:\github\CMVS-PMVS\program\base\pmvs\patchOrganizerS.h" />
-    <ClCompile Include="D:\github\CMVS-PMVS\program\base\pmvs\patchOrganizerS.cc" />
+    <ClInclude Include="..\..\program\base\pmvs\patchOrganizer.h" />
+    <ClCompile Include="..\..\program\base\pmvs\patchOrganizer.cc" />
     <ClInclude Include="D:\github\CMVS-PMVS\program\base\pmvs\point.h" />
     <ClCompile Include="D:\github\CMVS-PMVS\program\base\pmvs\point.cc" />
     <ClInclude Include="D:\github\CMVS-PMVS\program\base\pmvs\seed.h" />

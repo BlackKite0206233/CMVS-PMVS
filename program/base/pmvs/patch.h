@@ -6,81 +6,81 @@
 #include <iostream>
 #include <vector>
 
-namespace Patch {
+namespace ptch {
 
-class Cpatch {
+class Patch {
 public:
-  Cpatch(void) {
-    m_ncc     = -1.0;
-    m_timages = 0;
-    m_fix     = 0;
+  Patch(void) {
+    ncc     = -1.0;
+    tImages = 0;
+    fix     = 0;
     // dflag is initialized only once. if failed in one direction, we
     // never try that.
-    m_dflag   = 0;
+    dFlag   = 0;
 
     // All non-class member variables need to be initialized so that
     // they aren't just uninitialized memory.
-    m_flag    = 0;
-    m_id      = 0;
-    m_dscale  = 0;
-    m_ascale  = 0;
-    m_tmp     = 0;
+    flag    = 0;
+    id      = 0;
+    dScale  = 0;
+    aScale  = 0;
+    tmp     = 0;
   }
 
   //----------------------------------------------------------------------
   // saved information
   // 3D coordinates of the center of the patch
-  Vec4f m_coord;
+  Vec4f coord;
   // patch outward normal vector
-  Vec4f m_normal;
+  Vec4f normal;
 
   // associated image ids. first image id is the reference one. images
   // can be non-targetting image.
-  std::vector<int> m_images;
-  std::vector<TVec2<int>> m_grids;
+  std::vector<int> images;
+  std::vector<TVec2<int>> grids;
 
   // visible images. m_vimages must be targetting images.
-  std::vector<int> m_vimages;
-  std::vector<TVec2<int>> m_vgrids;
+  std::vector<int> vImages;
+  std::vector<TVec2<int>> vGrids;
 
   //----------------------------------------------------------------------
-  inline float score(const float threshold) const {
-    return std::max(0.0f, m_ncc - threshold) * (int)m_images.size();
+  inline float Score(const float threshold) const {
+    return std::max(0.0f, ncc - threshold) * (int)images.size();
   }
-  inline float score2(const float threshold) const {
-    return std::max(0.0f, m_ncc - threshold) * m_timages;
+  inline float Score2(const float threshold) const {
+    return std::max(0.0f, ncc - threshold) * tImages;
   }
 
   // average ncc
-  float m_ncc;
+  float ncc;
   // number of targetting images in m_images
-  int m_timages;
+  int tImages;
 
   // flat for expansion
   // 0: not yet tested
   // 1: done
-  int m_flag;
+  int flag;
 
   // for directional flag
-  unsigned char m_dflag;
+  unsigned char dFlag;
 
   // fixed patch or not
-  char m_fix;
+  char fix;
 
   // id number in m_ppatches
-  int m_id;
+  int id;
 
   // scaling factor corresponding to one pixel difference
-  float m_dscale;
-  float m_ascale;
+  float dScale;
+  float aScale;
 
-  float m_tmp;
+  float tmp;
 };
 
-typedef boost::shared_ptr<Cpatch> Ppatch;
+typedef boost::shared_ptr<Patch> pPatch;
 
 struct Spatchcmp {
-  bool operator()(const Ppatch &lhs, const Ppatch &rhs) {
+  bool operator()(const pPatch& lhs, const pPatch& rhs) {
     if (lhs.get() < rhs.get())
       return true;
     else
@@ -88,8 +88,8 @@ struct Spatchcmp {
   }
 };
 
-std::istream &operator>>(std::istream &istr, Patch::Cpatch &rhs);
-std::ostream &operator<<(std::ostream &ostr, const Patch::Cpatch &rhs);
+std::istream &operator>>(std::istream &istr, ptch::Patch &rhs);
+std::ostream &operator<<(std::ostream &ostr, const ptch::Patch &rhs);
 
 }; // namespace Patch
 

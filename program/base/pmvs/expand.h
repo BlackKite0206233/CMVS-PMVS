@@ -1,37 +1,37 @@
 #ifndef PMVS3_EXPAND_H
 #define PMVS3_EXPAND_H
 
-#include "patchOrganizerS.h"
+#include "patchOrganizer.h"
 #include <list>
 #include <queue>
 #include <vector>
 
 namespace PMVS3 {
-class CfindMatch;
+class FindMatch;
 
-class Cexpand {
+class Expand {
 public:
-  Cexpand(CfindMatch &findMatch);
-  ~Cexpand(){};
+  Expand(FindMatch&findMatch);
+  ~Expand(){};
 
-  void init(void);
-  void run(void);
+  void Init(void);
+  void Run(void);
 
-  float computeRadius(const Patch::Cpatch &patch);
-
-protected:
-  bool expandSub(const Patch::Ppatch &orgppatch, const int id, const Vec4f &canCoord);
-
-  bool updateCounts(const Patch::Cpatch &patch);
-
-  bool checkCounts(Patch::Cpatch &patch);
-
-  void findEmptyBlocks(const Patch::Ppatch &ppatch, std::vector<std::vector<Vec4f>> &canCoords);
+  float ComputeRadius(const ptch::Patch &patch);
 
 protected:
-  std::priority_queue<Patch::Ppatch, std::vector<Patch::Ppatch>, P_compare> m_queue;
+  bool expandSub(const ptch::pPatch &orgppatch, const int id, const Vec4f &canCoord);
 
-  CfindMatch &m_fm;
+  bool updateCounts(const ptch::Patch &patch);
+
+  bool checkCounts(ptch::Patch &patch);
+
+  void findEmptyBlocks(const ptch::pPatch &ppatch, std::vector<std::vector<Vec4f>> &canCoords);
+
+protected:
+  std::priority_queue<ptch::pPatch, std::vector<ptch::pPatch>, P_compare> queue;
+
+  FindMatch &fm;
 
   //-----------------------------------------------------------------
   // thread related
@@ -40,13 +40,13 @@ protected:
   static int expandThreadTmp(void *arg);
 
   // Number of trials
-  std::vector<int> m_ecounts;
+  std::vector<int> eCounts;
   // Number of failures in the prep
-  std::vector<int> m_fcounts0;
+  std::vector<int> fCounts0;
   // Number of failures in the post processing
-  std::vector<int> m_fcounts1;
+  std::vector<int> fCounts1;
   // Number passes
-  std::vector<int> m_pcounts;
+  std::vector<int> pCounts;
 };
 }; // namespace PMVS3
 
