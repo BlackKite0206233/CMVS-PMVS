@@ -142,28 +142,28 @@ void Dog::Run(const std::vector<unsigned char> &image,
 
   const float scalestep = pow(2.0f, 1 / 2.0f);
   // const float scalestep = pow(2.0f, 1.0f);
-  const int steps = max(4, (int)ceil(log(lastScale / firstScale) / log(scalestep)));
+  const int steps = max(4, (int)ceil(log(this->lastScale / this->firstScale) / log(scalestep)));
 
   vector<vector<float>> pdog, cdog, ndog, cres, nres;
 
-  setRes(firstScale, cres);
-  setRes(firstScale * scalestep, nres);
+  setRes(this->firstScale, cres);
+  setRes(this->firstScale * scalestep, nres);
   setDOG(cres, nres, cdog);
   cres.swap(nres);
-  setRes(firstScale * scalestep * scalestep, nres);
+  setRes(this->firstScale * scalestep * scalestep, nres);
   setDOG(cres, nres, ndog);
 
   vector<vector<unsigned char>> alreadydetected;
-  alreadydetected.resize(height);
-  for (int y = 0; y < height; ++y) {
-    alreadydetected[y].resize(width);
-    for (int x = 0; x < width; ++x) {
+  alreadydetected.resize(this->height);
+  for (int y = 0; y < this->height; ++y) {
+    alreadydetected[y].resize(this->width);
+    for (int x = 0; x < this->width; ++x) {
       alreadydetected[y][x] = (unsigned char)0;
     }
   }
 
   for (int i = 2; i <= steps - 1; ++i) {
-    const float cscale = firstScale * pow(scalestep, i + 1);
+    const float cscale = this->firstScale * pow(scalestep, i + 1);
     cres.swap(nres);
     setRes(cscale, nres);
 
@@ -173,8 +173,8 @@ void Dog::Run(const std::vector<unsigned char> &image,
 
     const int margin = (int)ceil(2 * cscale);
     // now 3 response maps are ready
-    for (int y = margin; y < height - margin; ++y) {
-      for (int x = margin; x < width - margin; ++x) {
+    for (int y = margin; y < this->height - margin; ++y) {
+      for (int x = margin; x < this->width - margin; ++x) {
         if (alreadydetected[y][x])
           continue;
         if (cdog[y][x] == 0.0)

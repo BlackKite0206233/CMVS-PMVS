@@ -484,7 +484,7 @@ bool Filter::FilterQuad(const ptch::Patch &patch, const std::vector<pPatch> &nei
 
   residual /= (nsize - 5);
 
-  return residual < fm.quadThreshold;
+  return !(residual < fm.quadThreshold);
 }
 
 int Filter::filterNeighborThreadTmp(void *arg) {
@@ -501,8 +501,6 @@ void Filter::filterNeighbor(const int times) {
   fm.po.CollectPatches(1);
   if (fm.po.pPatches.empty())
     return;
-
-  cout << "filter " << fm.po.pPatches[0]->images.size() << endl;
 
   rejects.resize((int)fm.po.pPatches.size());
   fill(rejects.begin(), rejects.end(), 0);
