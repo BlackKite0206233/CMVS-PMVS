@@ -55,7 +55,7 @@ protected:
   void setINCCs(const ptch::Patch &patch, std::vector<std::vector<float>> &nccs, const std::vector<int> &indexes, const int id, const bool robust);
 
   bool grabTex(const Vec4f &coord, const Vec4f &pxaxis, const Vec4f &pyaxis, const Vec4f &pzaxis, 
-			   const int index, const int size, std::vector<float> &tex) const;
+							 const int index, const int size, std::vector<float> &tex) const;
 
   bool grabSafe(const int index, const int size, const Vec3f &center, const Vec3f &dx, const Vec3f &dy, const int level) const;
 
@@ -65,7 +65,7 @@ protected:
                      const int robust);
   */
   double computeINCC(const Vec4f &coord, const Vec4f &normal, const std::vector<int> &indexes, 
-					 const Vec4f &pxaxis, const Vec4f &pyaxis, const int id, const bool robust);
+										 const Vec4f &pxaxis, const Vec4f &pyaxis, const int id, const bool robust);
 
 public:
   static void Normalize(std::vector<float> &tex);

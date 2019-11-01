@@ -50,10 +50,10 @@ void Photo::IdotC(const std::vector<Vec3f> &tex0, const std::vector<Vec3f> &tex1
   idc[0] = 0.0;
   idc[1] = 0.0;
   idc[2] = 0.0;
-  for (int i = 0; i < (int)tex0.size(); ++i) {
+  for (int i = 0; i < (int)tex0.size(); ++i) 
     for (int j = 0; j < 3; ++j)
       idc[j] += tex0[i][j] * tex1[i][j];
-  }
+
   for (int j = 0; j < 3; ++j)
     idc[j] = 1.0 - idc[j] / (int)tex0.size();
 }
@@ -83,7 +83,7 @@ void Photo::Normalize(std::vector<Vec3f> &tex) {
 }
 
 void Photo::GrabTex(const int level, const Vec2f &iCoord, const Vec2f &xAxis, const Vec2f &yAxis, 
-					const int size, std::vector<Vec3f> &tex, const bool normalizef) const {
+										const int size, std::vector<Vec3f> &tex, const bool normalizef) const {
   const int margin = size / 2;
 
   // Check boundary condition

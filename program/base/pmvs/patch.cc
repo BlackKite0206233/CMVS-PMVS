@@ -17,13 +17,13 @@ std::istream &ptch::operator>>(std::istream &istr, Patch &rhs) {
 
   istr >> itmp;
   rhs.images.resize(itmp);
-  for (int i = 0; i < itmp; ++i)
-    istr >> rhs.images[i];
+  for (auto& image : rhs.images)
+    istr >> image;
 
   istr >> itmp;
   rhs.vImages.resize(itmp);
-  for (int i = 0; i < itmp; ++i)
-    istr >> rhs.vImages[i];
+  for (auto& image : rhs.vImages)
+    istr >> image;
 
   return istr;
 }
@@ -34,13 +34,13 @@ std::ostream &ptch::operator<<(std::ostream &ostr, const Patch &rhs) {
        << rhs.normal << endl
        << rhs.ncc << ' ' << rhs.dScale << ' ' << rhs.aScale << endl
        << (int)rhs.images.size() << endl;
-  for (int i = 0; i < (int)rhs.images.size(); ++i)
-    ostr << rhs.images[i] << ' ';
+  for (const auto& image : rhs.images)
+    ostr << image << ' ';
   ostr << endl;
 
   ostr << (int)rhs.vImages.size() << endl;
-  for (int i = 0; i < (int)rhs.vImages.size(); ++i)
-    ostr << rhs.vImages[i] << ' ';
+  for (const auto& image : rhs.vImages)
+    ostr << image << ' ';
   ostr << endl;
 
   return ostr;

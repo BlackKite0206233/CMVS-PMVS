@@ -91,7 +91,7 @@ void Image::Init(const std::string name, const std::string mname, const int maxl
 
   if (!maxLevel) {
     cerr << "Number of level 0, set it to 1." << endl;
-	maxLevel = 1;
+		maxLevel = 1;
   }
 }
 
@@ -148,12 +148,12 @@ void Image::Alloc(const bool fast, const int filter) {
       cerr << "Read mask: " << mName << endl;
       for (auto& m : masks[0]) {
         if (127 < (int)m)
-			m = (unsigned char)255;
+					m = (unsigned char)255;
         else
-			m = (unsigned char)0;
+					m = (unsigned char)0;
       }
     } else {
-	  mName = "";
+			mName = "";
     }
   }
   //----------------------------------------------------------------------
@@ -164,9 +164,9 @@ void Image::Alloc(const bool fast, const int filter) {
       // 255: in, 0 : out
       for (auto& e : edges[0]) {
         if (1 < (unsigned char)e)
-			e = (unsigned char)255;
+					e = (unsigned char)255;
         else
-			e = (unsigned char)0;
+					e = (unsigned char)0;
       }
     } else {
       eName = "";
@@ -330,15 +330,15 @@ void Image::buildImage(const int filter) {
         }
         if (filter == 0)
           color /= denom;
-        const int index = (y * widths[level] + x) * 3;
+					const int index = (y * widths[level] + x) * 3;
 #ifdef FURUKAWA_IMAGE_GAMMA
-        dimages[level][index] = color[0];
-        dimages[level][index + 1] = color[1];
-        dimages[level][index + 2] = color[2];
+					dimages[level][index] = color[0];
+					dimages[level][index + 1] = color[1];
+					dimages[level][index + 2] = color[2];
 #else
-        images[level][index    ] = (unsigned char)((int)floor(color[0] + 0.5f));
-        images[level][index + 1] = (unsigned char)((int)floor(color[1] + 0.5f));
-        images[level][index + 2] = (unsigned char)((int)floor(color[2] + 0.5f));
+					images[level][index    ] = (unsigned char)((int)floor(color[0] + 0.5f));
+					images[level][index + 1] = (unsigned char)((int)floor(color[1] + 0.5f));
+					images[level][index + 2] = (unsigned char)((int)floor(color[2] + 0.5f));
 #endif
       }
     }
@@ -418,8 +418,8 @@ void Image::buildEdge(void) {
 void Image::SetEdge(const float threshold) {
   const int size = widths[0] * heights[0];
   edges[0].resize(size);
-  for (int i = 0; i < size; ++i)
-    edges[0][i] = (unsigned char)0;
+  for (auto& e : edges[0])
+    e = (unsigned char)0;
 
   vector<vector<float>> vvitmp, vvitmp2;
   vvitmp.resize(heights[0]);
@@ -527,10 +527,10 @@ bool Image::ReadPBMImage(const std::string file, std::vector<unsigned char> &ima
 
   ifstream ifstr;
   ifstr.open(file.c_str());
-  if (!ifstr.is_open()) {
+  if (!ifstr.is_open()) 
     return false;
     // exit (1);
-  }
+
   string header;
   unsigned char uctmp;
 
@@ -638,11 +638,11 @@ bool Image::ReadPGMImage(const std::string file, std::vector<unsigned char> &ima
 
   ifstream ifstr;
   ifstr.open(file.c_str());
-  if (!ifstr.is_open()) {
+  if (!ifstr.is_open()) 
     // cerr << "Cannot open a file: " << file << endl;
     return false;
     // exit (1);
-  }
+
   string header;
   unsigned char uctmp;
   int itmp;
@@ -832,7 +832,7 @@ void Image::WriteJpegImage(const std::string filename, const std::vector<unsigne
       row_pointer[0] = (JSAMPROW)&buffer[(cinfo.image_height - 1 - cinfo.next_scanline) * row_stride];
     else
       row_pointer[0] = (JSAMPROW)&buffer[cinfo.next_scanline * row_stride];
-    (void)jpeg_write_scanlines(&cinfo, row_pointer, 1);
+		(void)jpeg_write_scanlines(&cinfo, row_pointer, 1);
   }
 
   jpeg_finish_compress(&cinfo);

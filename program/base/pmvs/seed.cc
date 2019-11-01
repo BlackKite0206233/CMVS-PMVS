@@ -26,11 +26,11 @@ void Seed::Init(const std::vector<std::vector<Point>> &points) {
 
 void Seed::readPoints(const std::vector<std::vector<Point>> &points) {
   for (int index = 0; index < fm.num; ++index) {
-    for (int i = 0; i < (int)points[index].size(); ++i) {
-      pPoint ppoint(new Point(points[index][i]));
+    for (const auto& point : points[index]) {
+      pPoint ppoint(new Point(point));
       ppoint->iTmp = index;
-      const int ix = ((int)floor(ppoint->iCoord[0] + 0.5f)) / fm.cSize;
-      const int iy = ((int)floor(ppoint->iCoord[1] + 0.5f)) / fm.cSize;
+      const int ix     = ((int)floor(ppoint->iCoord[0] + 0.5f)) / fm.cSize;
+      const int iy     = ((int)floor(ppoint->iCoord[1] + 0.5f)) / fm.cSize;
       const int index2 = iy * fm.po.gWidths[index] + ix;
       pPoints[index][index2].push_back(ppoint);
     }
@@ -61,30 +61,27 @@ void Seed::Run(void) {
   fm.po.ClearCounts();
 
   // If there already exists a patch, don't use
-  for (int index = 0; index < (int)fm.tNum; ++index) {
-    for (int j = 0; j < (int)fm.po.pGrids[index].size(); ++j) {
+  for (int index = 0; index < (int)fm.tNum; ++index) 
+    for (int j = 0; j < (int)fm.po.pGrids[index].size(); ++j) 
       if (!fm.po.pGrids[index][j].empty())
         fm.po.counts[index][j] = fm.countThreshold2;
-    }
-  }
 
-  time_t tv;
-  time(&tv);
-  time_t curtime = tv;
+	clock_t begin = clock();
+
   vector<thrd_t> threads(fm.CPU);
-  for (int i = 0; i < fm.CPU; ++i)
-    thrd_create(&threads[i], &initialMatchThreadTmp, (void *)this);
-  for (int i = 0; i < fm.CPU; ++i)
-    thrd_join(threads[i], NULL);
+  for (auto& t : threads)
+    thrd_create(&t, &initialMatchThreadTmp, (void *)this);
+  for (auto& t : threads)
+    thrd_join(t, NULL);
   //----------------------------------------------------------------------
   cerr << "done" << endl;
-  time(&tv);
-  cerr << "---- Initial: " << (tv - curtime) / CLOCKS_PER_SEC << " secs ----" << endl;
+  cerr << "---- Initial: " << (double)(clock() - begin) / CLOCKS_PER_SEC << " secs ----" << endl;
 
   const int trial = accumulate(sCounts.begin(),  sCounts.end(),  0);
   const int fail0 = accumulate(fCounts0.begin(), fCounts0.end(), 0);
   const int fail1 = accumulate(fCounts1.begin(), fCounts1.end(), 0);
   const int pass  = accumulate(pCounts.begin(),  pCounts.end(),  0);
+
   cerr << "Total pass fail0 fail1 refinepatch: "   << trial << ' ' << pass << ' ' << fail0 << ' ' << fail1 << ' ' << pass + fail1 << endl;
   cerr << "Total pass fail0 fail1 refinepatch: "   << 100 * trial / (float)trial
        << ' ' << 100 * pass           / (float)trial 
@@ -144,19 +141,19 @@ void Seed::initialMatch(const int index, const int id) {
       if (!canAdd(index, x, y))
         continue;
 
-      for (int p = 0; p < (int)pPoints[index][index2].size(); ++p) {
+      for (const auto& p : pPoints[index][index2]) {
         // collect features that satisfies epipolar geometry
         // constraints and sort them according to the differences of
         // distances between two cameras.
         vector<pPoint> vcp;
-        collectCandidates(index, indexes, *pPoints[index][index2][p], vcp);
+        collectCandidates(index, indexes, *p, vcp);
 
         int count = 0;
         Patch bestpatch;
         //======================================================================
-        for (int i = 0; i < (int)vcp.size(); ++i) {
+        for (const auto& v : vcp) {
           Patch patch;
-          patch.coord  = vcp[i]->coord;
+          patch.coord  = v->coord;
           patch.normal = fm.ps.photos[index].center - patch.coord;
 
           unitize(patch.normal);
@@ -164,14 +161,13 @@ void Seed::initialMatch(const int index, const int id) {
           patch.flag = 0;
 
           ++fm.po.counts[index][index2];
-          const int ix = ((int)floor(vcp[i]->iCoord[0] + 0.5f)) / fm.cSize;
-          const int iy = ((int)floor(vcp[i]->iCoord[1] + 0.5f)) / fm.cSize;
-          const int index3 = iy * fm.po.gWidths[vcp[i]->iTmp] + ix;
-          if (vcp[i]->iTmp < fm.tNum)
-            ++fm.po.counts[vcp[i]->iTmp][index3];
+          const int ix = ((int)floor(v->iCoord[0] + 0.5f)) / fm.cSize;
+          const int iy = ((int)floor(v->iCoord[1] + 0.5f)) / fm.cSize;
+          const int index3 = iy * fm.po.gWidths[v->iTmp] + ix;
+          if (v->iTmp < fm.tNum)
+            ++fm.po.counts[v->iTmp][index3];
 
-          const int flag = initialMatchSub(index, vcp[i]->iTmp, id, patch);
-          if (flag == 0) {
+          if (!initialMatchSub(index, v->iTmp, id, patch)) {
             ++count;
             if (bestpatch.Score(fm.nccThreshold) < patch.Score(fm.nccThreshold))
               bestpatch = patch;
@@ -179,7 +175,8 @@ void Seed::initialMatch(const int index, const int id) {
               break;
           }
         }
-        if (count != 0) {
+
+        if (count) {
           pPatch ppatch(new Patch(bestpatch));
           fm.po.AddPatch(ppatch);
           ++totalcount;
@@ -246,59 +243,50 @@ void Seed::collectCells(const int index0, const int index1, const Point &p0, std
 // epipolar geometry coming from point in image
 void Seed::collectCandidates(const int index, const std::vector<int> &indexes, const Point &point, std::vector<pPoint> &vcp) {
   const Vec3 p0(point.iCoord[0], point.iCoord[1], 1.0);
-  for (int i = 0; i < (int)indexes.size(); ++i) {
-    const int indexid = indexes[i];
-
+  for (const auto& indexid: indexes) {
     vector<TVec2<int>> cells;
     collectCells(index, indexid, point, cells);
     Mat3 F;
     img::SetF(fm.ps.photos[index], fm.ps.photos[indexid], F, fm.level);
 
-    for (int i = 0; i < (int)cells.size(); ++i) {
-      const int x = cells[i][0];
-      const int y = cells[i][1];
+    for (const auto& c : cells) {
+      const int x = c[0];
+      const int y = c[1];
+
       if (!canAdd(indexid, x, y))
         continue;
+
       const int index2 = y * fm.po.gWidths[indexid] + x;
+			for (const auto& p : pPoints[indexid][index2]) {
+				if (point.type != p->type) 
+					continue;
 
-      vector<pPoint>::iterator begin = pPoints[indexid][index2].begin();
-      vector<pPoint>::iterator end   = pPoints[indexid][index2].end();
-      while (begin != end) {
-        Point &rhs = **begin;
-        // ? use type to reject candidates?
-        if (point.type != rhs.type) {
-          ++begin;
-          continue;
-        }
+				const Vec3 p1(p->iCoord[0], p->iCoord[1], 1.0);
+				if (fm.epThreshold <= img::ComputeEPD(F, p0, p1)) 
+					continue;
 
-        const Vec3 p1(rhs.iCoord[0], rhs.iCoord[1], 1.0);
-        if (fm.epThreshold <= img::ComputeEPD(F, p0, p1)) {
-          ++begin;
-          continue;
-        }
-        vcp.push_back(*begin);
-        ++begin;
-      }
+				vcp.push_back(p);
+			}
     }
   }
 
   // set distances to response
   vector<pPoint> vcptmp;
-  for (int i = 0; i < (int)vcp.size(); ++i) {
-    unproject(index, vcp[i]->iTmp, point, *vcp[i], vcp[i]->coord);
+  for (auto& v : vcp) {
+    unproject(index, v->iTmp, point, *v, v->coord);
 
-    if (fm.ps.photos[index].projection[fm.level][2] * vcp[i]->coord <= 0.0)
+    if (fm.ps.photos[index].projection[fm.level][2] * v->coord <= 0.0)
       continue;
 
-    if (!fm.ps.GetMask(vcp[i]->coord, fm.level) || !fm.InsideBimages(vcp[i]->coord))
+    if (!fm.ps.GetMask(v->coord, fm.level) || !fm.InsideBimages(v->coord))
       continue;
 
     //??? from the closest
-    vcp[i]->response = fabs(norm(vcp[i]->coord - fm.ps.photos[index].center) - 
-                              norm(vcp[i]->coord - fm.ps.photos[vcp[i]->iTmp].center));
-
-    vcptmp.push_back(vcp[i]);
+    v->response = fabs(norm(v->coord - fm.ps.photos[index].center) - 
+                       norm(v->coord - fm.ps.photos[v->iTmp].center));
+    vcptmp.push_back(v);
   }
+
   vcptmp.swap(vcp);
   sort(vcp.begin(), vcp.end());
 }
@@ -352,6 +340,7 @@ void Seed::unproject(const int index0, const int index1, const Point &p0, const 
   for (int y = 0; y < 3; ++y)
     for (int x = 0; x < 3; ++x)
       ATA3[y][x] = ATA[y][x];
+
   Vec3 ATb3;
   for (int y = 0; y < 3; ++y)
     ATb3[y] = ATb[y];

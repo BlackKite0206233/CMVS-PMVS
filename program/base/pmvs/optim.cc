@@ -37,8 +37,8 @@ void Optim::Init(void) {
   for (int c = 0; c < fm.CPU; ++c) {
     texsT[c].resize(fm.num);
     weightsT[c].resize(fm.num);
-    for (int j = 0; j < fm.tau; ++j)
-      texsT[c][j].resize(3 * fm.wSize * fm.wSize);
+    for (auto& t : texsT[c])
+      t.resize(3 * fm.wSize * fm.wSize);
   }
 
   setAxesScales();
@@ -77,20 +77,18 @@ void Optim::CollectImages(const int index, std::vector<int> &indexes) const {
   // CphotoSet::distances.
   indexes.clear();
   Vec4f ray0 = fm.ps.photos[index].oAxis;
-  ray0[3] = 0.0f;
+  ray0[3]    = 0.0f;
 
   vector<Vec2f> candidates;
   // Search for only related images
-  for (int i = 0; i < (int)fm.visData2[index].size(); ++i) {
-    const int indextmp = fm.visData2[index][i];
-
+  for (const auto& indextmp: fm.visData2[index]) {
     // if (fm.tnum <= indextmp)
     // continue;
     if (fm.sequenceThreshold != -1 && fm.sequenceThreshold < abs(index - indextmp))
       continue;
 
     Vec4f ray1 = fm.ps.photos[indextmp].oAxis;
-    ray1[3] = 0.0f;
+    ray1[3]    = 0.0f;
 
     if (ray0 * ray1 < cos(fm.angleThreshold0))
       continue;
@@ -114,10 +112,9 @@ bool Optim::PreProcess(Patch &patch, const int id, const int seed) {
   sortImages(patch);
 
   // Pierre Moulon (it avoid crash in some case)
-  if ((int)patch.images.size() > 0) {
+  if ((int)patch.images.size() > 0) 
     // setSscales should be here to avoid noisy output
     fm.po.SetScales(patch);
-  }
 
   // Check minimum number of images
   if ((int)patch.images.size() < fm.minImageNumThreshold)
@@ -182,13 +179,9 @@ bool Optim::PostProcess(Patch &patch, const int id, const int seed) {
 
   // set tImages
   patch.tImages = 0;
-  vector<int>::const_iterator begin = patch.images.begin();
-  vector<int>::const_iterator end   = patch.images.end();
-  while (begin != end) {
-    if (*begin < fm.tNum)
-      ++patch.tImages;
-    ++begin;
-  }
+	for (const auto& image : patch.images)
+		if (image < fm.tNum)
+			++patch.tImages;
 
   patch.tmp = patch.Score2(fm.nccThreshold);
   // Set vimages vgrids.
@@ -209,10 +202,10 @@ void Optim::constraintImages(Patch &patch, const float nccThreshold, const int i
   // Constraint images
   vector<int> newimages;
   newimages.push_back(patch.images[0]);
-  for (int i = 1; i < (int)patch.images.size(); ++i) {
+  for (int i = 1; i < (int)patch.images.size(); ++i)
     if (inccs[i] < 1.0f - nccThreshold)
       newimages.push_back(patch.images[i]);
-  }
+
   patch.images.swap(newimages);
 }
 
@@ -227,13 +220,10 @@ void Optim::SetRefImage(Patch &patch, const int id) {
   // Set the reference image
   // Only for target images
   vector<int> indexes;
-  vector<int>::const_iterator begin = patch.images.begin();
-  vector<int>::const_iterator end   = patch.images.end();
-  while (begin != end) {
-    if (*begin < fm.tNum)
-      indexes.push_back(*begin);
-    ++begin;
-  }
+	for (const auto& image : patch.images) 
+		if (image < fm.tNum) 
+			indexes.push_back(image);
+
   // To avoid segmentation error on alley dataset. (this code is necessary
   // because of the use of filterExact)
   if (indexes.empty()) {
@@ -253,12 +243,13 @@ void Optim::SetRefImage(Patch &patch, const int id) {
       refindex = i;
     }
   }
+
   const int refIndex = indexes[refindex];
-  for (int i = 0; i < (int)patch.images.size(); ++i) {
-    if (patch.images[i] == refIndex) {
-      const int itmp = patch.images[0];
+  for (auto& image : patch.images) {
+    if (image == refIndex) {
+      const int itmp  = patch.images[0];
       patch.images[0] = refIndex;
-      patch.images[i] = itmp;
+			image           = itmp;
       break;
     }
   }
@@ -276,7 +267,7 @@ void Optim::setRefConstraintImages(Patch &patch, const float nccThreshold, const
   for (int i = 0; i < (int)patch.images.size(); ++i) {
     const float sum = accumulate(inccs[i].begin(), inccs[i].end(), 0.0f);
     if (sum < refncc) {
-      refncc = sum;
+      refncc   = sum;
       refindex = i;
     }
   }
@@ -309,7 +300,7 @@ void Optim::sortImages(Patch &patch) const {
     units[0] = 0.0f;
 
     while (!indexes.empty()) {
-      vector<float>::iterator ite = min_element(units.begin(), units.end());
+      auto& ite = min_element(units.begin(), units.end());
       const int index = ite - units.begin();
 
       patch.images.push_back(indexes[index]);
@@ -351,7 +342,7 @@ void Optim::sortImages(Patch &patch) const {
 
     while (!indexes.empty()) {
       // for (int i = 0; i < size; ++i) {
-      vector<float>::iterator ite = min_element(units.begin(), units.end());
+      auto& ite = min_element(units.begin(), units.end());
       const int index = ite - units.begin();
 
       patch.images.push_back(indexes[index]);
@@ -400,13 +391,11 @@ bool Optim::Check(Patch &patch) {
 
 void Optim::RemoveImagesEdge(ptch::Patch &patch) const {
   vector<int> newindexes;
-  vector<int>::const_iterator bimage = patch.images.begin();
-  vector<int>::const_iterator eimage = patch.images.end();
-  while (bimage != eimage) {
-    if (fm.ps.GetEdge(patch.coord, *bimage, fm.level))
-      newindexes.push_back(*bimage);
-    ++bimage;
-  }
+
+	for (const auto& image : patch.images)
+		if (fm.ps.GetEdge(patch.coord, image, fm.level))
+			newindexes.push_back(image);
+
   patch.images.swap(newindexes);
 }
 
@@ -414,96 +403,70 @@ void Optim::AddImages(ptch::Patch &patch) const {
   // take into account edge
   vector<int> used;
   used.resize(fm.num);
-  for (int index = 0; index < fm.num; ++index)
-    used[index] = 0;
+  for (auto& u : used)
+    u = 0;
 
-  vector<int>::const_iterator bimage = patch.images.begin();
-  vector<int>::const_iterator eimage = patch.images.end();
-  while (bimage != eimage) {
-    used[*bimage] = 1;
-    ++bimage;
-  }
-
-  bimage = fm.visData2[patch.images[0]].begin();
-  eimage = fm.visData2[patch.images[0]].end();
+	for (const auto& image : patch.images) {
+		used[image] = 1;
+	}
 
   const float athreshold = cos(fm.angleThreshold0);
-  while (bimage != eimage) {
-    if (used[*bimage]) {
-      ++bimage;
-      continue;
-    }
+	for (const auto& image : fm.visData2[patch.images[0]]) {
+		if (used[image])
+			continue;
 
-    const Vec3f icoord = fm.ps.Project(*bimage, patch.coord, fm.level);
-    if (icoord[0] < 0.0f || fm.ps.GetWidth(*bimage,  fm.level) - 1 <= icoord[0] ||
-        icoord[1] < 0.0f || fm.ps.GetHeight(*bimage, fm.level) - 1 <= icoord[1]) {
-      ++bimage;
-      continue;
-    }
+		const Vec3f icoord = fm.ps.Project(image, patch.coord, fm.level);
+		if (icoord[0] < 0.0f || fm.ps.GetWidth(image,  fm.level) - 1 <= icoord[0] ||
+			  icoord[1] < 0.0f || fm.ps.GetHeight(image, fm.level) - 1 <= icoord[1]) 
+			continue;
 
-    if (!fm.ps.GetEdge(patch.coord, *bimage, fm.level)) {
-      ++bimage;
-      continue;
-    }
+		if (!fm.ps.GetEdge(patch.coord, image, fm.level)) 
+			continue;
 
-    Vec4f ray = fm.ps.photos[*bimage].center - patch.coord;
-    unitize(ray);
-    const float ftmp = ray * patch.normal;
+		Vec4f ray = fm.ps.photos[image].center - patch.coord;
+		unitize(ray);
+		const float ftmp = ray * patch.normal;
 
-    if (athreshold <= ftmp)
-      patch.images.push_back(*bimage);
-
-    ++bimage;
-  }
+		if (athreshold <= ftmp)
+			patch.images.push_back(image);
+	}
 }
 
 void Optim::ComputeUnits(const ptch::Patch &patch, std::vector<float> &units) const {
   const int size = (int)patch.images.size();
   units.resize(size);
 
-  vector<int>::const_iterator bimage = patch.images.begin();
-  vector<int>::const_iterator eimage = patch.images.end();
+  auto& bfine = units.begin();
 
-  vector<float>::iterator bfine = units.begin();
+	for (const auto& image : patch.images) {
+		*bfine = INT_MAX / 2;
 
-  while (bimage != eimage) {
-    *bfine = INT_MAX / 2;
+		*bfine = GetUnit(image, patch.coord);
+		Vec4f ray = fm.ps.photos[image].center - patch.coord;
+		unitize(ray);
+		const float denom = ray * patch.normal;
+		if (0.0 < denom)
+			*bfine /= denom;
 
-    *bfine = GetUnit(*bimage, patch.coord);
-    Vec4f ray = fm.ps.photos[*bimage].center - patch.coord;
-    unitize(ray);
-    const float denom = ray * patch.normal;
-    if (0.0 < denom)
-      *bfine /= denom;
-    else
-      *bfine = INT_MAX / 2;
-
-    ++bimage;
-    ++bfine;
-  }
+		++bfine;
+	}
 }
 
 void Optim::ComputeUnits(const ptch::Patch &patch, std::vector<int> &indexes, std::vector<float> &units, std::vector<Vec4f> &rays) const {
-  vector<int>::const_iterator bimage = patch.images.begin();
-  vector<int>::const_iterator eimage = patch.images.end();
+	for (const auto& image : patch.images) {
+		Vec4f ray = fm.ps.photos[image].center - patch.coord;
+		unitize(ray);
+		const float dot = ray * patch.normal;
+		if (dot <= 0.0f)
+			continue;
 
-  while (bimage != eimage) {
-    Vec4f ray = fm.ps.photos[*bimage].center - patch.coord;
-    unitize(ray);
-    const float dot = ray * patch.normal;
-    if (dot <= 0.0f) {
-      ++bimage;
-      continue;
-    }
+		const float scale = GetUnit(image, patch.coord);
+		const float fine  = scale / dot;
 
-    const float scale = GetUnit(*bimage, patch.coord);
-    const float fine  = scale / dot;
-
-    indexes.push_back(*bimage);
-    units.push_back(fine);
-    rays.push_back(ray);
-    ++bimage;
-  }
+		indexes.push_back(image);
+		units.push_back(fine);
+		rays.push_back(ray);
+	}
 }
 
 void Optim::RefinePatch(Patch &patch, const int id, const int time) {
@@ -549,7 +512,7 @@ double Optim::my_f(unsigned n, const double *x, double *grad, void *my_func_data
   const int pairwise = 0;
   if (pairwise) {
     double ans = 0.0f;
-    int denom = 0;
+    int denom  = 0;
     for (int i = 0; i < size; ++i) {
       for (int j = i + 1; j < size; ++j) {
         if (one->texsT[id][i].empty() || one->texsT[id][j].empty())
@@ -571,7 +534,7 @@ double Optim::my_f(unsigned n, const double *x, double *grad, void *my_func_data
       return 2.0;
 
     double ans = 0.0f;
-    int denom = 0;
+    int denom  = 0;
     for (int i = 1; i < size; ++i) {
       if (one->texsT[id][i].empty())
         continue;
@@ -600,8 +563,8 @@ bool Optim::RefinePatchBFGS(Patch &patch, const int id, const int time, const in
   aScalesT[id] = M_PI / 48.0f; // patch.ascale;
 
   ComputeUnits(patch, weightsT[id]);
-  for (int i = 1; i < (int)weightsT[id].size(); ++i)
-    weightsT[id][i] = min(1.0f, weightsT[id][0] / weightsT[id][i]);
+  for (auto& w : weightsT[id])
+    w = min(1.0f, weightsT[id][0] / w);
   weightsT[id][0] = 1.0f;
 
   double p[3];
@@ -633,10 +596,9 @@ bool Optim::RefinePatchBFGS(Patch &patch, const int id, const int time, const in
     opt.set_upper_bounds(upper_bounds);
 
     std::vector<double> x(3);
-    for (int i = 0; i < 3; i++) {
+    for (int i = 0; i < 3; i++) 
       // NLOPT returns an error if x is not within the bounds
       x[i] = max(min(p[i], upper_bounds[i]), lower_bounds[i]);
-    }
 
     double minf;
     nlopt::srand(1);
@@ -656,10 +618,8 @@ bool Optim::RefinePatchBFGS(Patch &patch, const int id, const int time, const in
     decode(patch.coord, patch.normal, p, id);
 
     patch.ncc = 1.0 - UnrobustINCC(ComputeINCC(patch.coord, patch.normal, patch.images, id, 1));
-
-  } else {
+  } else 
     return false;
-  }
 
   return true;
 }
@@ -720,10 +680,9 @@ void Optim::setINCCs(const ptch::Patch &patch, std::vector<float> &inccs, const 
   vector<vector<float>> &texs = texsT[id];
 
   const int size = (int)indexes.size();
-  for (int i = 0; i < size; ++i) {
+  for (int i = 0; i < size; ++i) 
     if (!grabTex(patch.coord, pxaxis, pyaxis, patch.normal, indexes[i], fm.wSize, texs[i])) 
       Normalize(texs[i]);
-  }
 
   inccs.resize(size);
   if (texs[0].empty()) {
@@ -752,14 +711,13 @@ void Optim::setINCCs(const ptch::Patch &patch, std::vector<std::vector<float>> &
   vector<vector<float>> &texs = texsT[id];
 
   const int size = (int)indexes.size();
-  for (int i = 0; i < size; ++i) {
+  for (int i = 0; i < size; ++i) 
     if (!grabTex(patch.coord, pxaxis, pyaxis, patch.normal, indexes[i], fm.wSize, texs[i]))
       Normalize(texs[i]);
-  }
 
   inccs.resize(size);
-  for (int i = 0; i < size; ++i)
-    inccs[i].resize(size);
+  for (auto& incc : inccs)
+		incc.resize(size);
 
   for (int i = 0; i < size; ++i) {
     inccs[i][i] = 0.0f;
@@ -799,15 +757,15 @@ bool Optim::grabSafe(const int index, const int size, const Vec3f &center, const
 }
 
 // My own optimisaton
+const float answers[] = {0.0625, 0.125, 0.25, 0.5, 1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024};
 float MyPow2(int x) {
-  const float answers[] = {0.0625, 0.125, 0.25, 0.5, 1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024};
-
   return answers[x + 4];
 }
 
 static float Log2 = log(2.0f);
 
-bool Optim::grabTex(const Vec4f &coord, const Vec4f &pxaxis, const Vec4f &pyaxis, const Vec4f &pzaxis, const int index, const int size, std::vector<float> &tex) const {
+bool Optim::grabTex(const Vec4f &coord, const Vec4f &pxaxis, const Vec4f &pyaxis, const Vec4f &pzaxis, 
+										const int index, const int size, std::vector<float> &tex) const {
   tex.clear();
 
   Vec4f ray = fm.ps.photos[index].center - coord;
@@ -874,17 +832,17 @@ double Optim::ComputeINCC(const Vec4f &coord, const Vec4f &normal, const std::ve
   return computeINCC(coord, normal, indexes, pxaxis, pyaxis, id, robust);
 }
 
-double Optim::computeINCC(const Vec4f &coord, const Vec4f &normal, const std::vector<int> &indexes, const Vec4f &pxaxis, const Vec4f &pyaxis, const int id, const bool robust) {
+double Optim::computeINCC(const Vec4f &coord, const Vec4f &normal, const std::vector<int> &indexes, 
+													const Vec4f &pxaxis, const Vec4f &pyaxis, const int id, const bool robust) {
   if ((int)indexes.size() < 2)
     return 2.0;
 
   const int size = min(fm.tau, (int)indexes.size());
   vector<vector<float>> &texs = texsT[id];
 
-  for (int i = 0; i < size; ++i) {
+  for (int i = 0; i < size; ++i) 
     if (!grabTex(coord, pxaxis, pyaxis, normal, indexes[i], fm.wSize, texs[i]))
       Normalize(texs[i]);
-  }
 
   if (texs[0].empty())
     return 2.0;
@@ -952,11 +910,10 @@ void Optim::func(int m, int n, double *x, double *fvec, int *iflag, void *arg) {
 
   const int size = min(fm.tau, (int)indexesT[id].size());
 
-  for (int i = 0; i < size; ++i) {
-    int flag;
+  for (int i = 0; i < size; ++i) 
     if (!grabTex(coord, pxaxis, pyaxis, normal, indexesT[id][i], fm.wSize, texsT[id][i]))
       Normalize(texsT[id][i]);
-  }
+  
 
   int count = -1;
   for (int i = 0; i < size; ++i) {
@@ -1065,9 +1022,8 @@ float Optim::Dot(const std::vector<float> &tex0, const std::vector<float> &tex1)
   // begin()-1)
   const int size = (int)tex0.size();
   float ans = 0.0f;
-  for (int i = 0; i < size; ++i) {
+  for (int i = 0; i < size; ++i) 
     ans += tex0[i] * tex1[i];
-  }
   return ans / size;
 #else
   const int size = (int)tex0.size();
@@ -1089,10 +1045,8 @@ float Optim::SSD(const std::vector<float> &tex0, const std::vector<float> &tex1)
   // begin()-1)
   const int size = (int)tex0.size();
   float ans = 0.0f;
-  for (int i = 0; i < size; ++i) {
+  for (int i = 0; i < size; ++i) 
     ans += fabs(tex0[i] - tex1[i]);
-  }
-
   return scale * ans / size;
 #else
   const int size = (int)tex0.size();
@@ -1145,7 +1099,7 @@ void Optim::GetPAxes(const int index, const Vec4f &coord, const Vec4f &normal, V
 
 void Optim::SetWeightsT(const ptch::Patch &patch, const int id) {
   ComputeUnits(patch, weightsT[id]);
-  for (int i = 1; i < (int)weightsT[id].size(); ++i)
-    weightsT[id][i] = min(1.0f, weightsT[id][0] / weightsT[id][i]);
+  for (auto& w : weightsT[id])
+    w = min(1.0f, weightsT[id][0] / w);
   weightsT[id][0] = 1.0f;
 }

@@ -23,7 +23,7 @@ protected:
 public:
   template <class T>
   void ConvolveX(std::vector<std::vector<T>> &image, const std::vector<std::vector<unsigned char>> &mask, 
-				 const std::vector<float> &filter, std::vector<std::vector<T>> &buffer) {
+								 const std::vector<float> &filter, std::vector<std::vector<T>> &buffer) {
     const int width  = image[0].size();
     const int height = image.size();
     const int margin = ((int)filter.size()) / 2;
@@ -57,7 +57,7 @@ public:
 
   template <class T>
   void ConvolveY(std::vector<std::vector<T>> &image, const std::vector<std::vector<unsigned char>> &mask, 
-				 const std::vector<float> &filter, std::vector<std::vector<T>> &buffer) {
+				         const std::vector<float> &filter, std::vector<std::vector<T>> &buffer) {
     const int width  = image[0].size();
     const int height = image.size();
     const int margin = ((int)filter.size()) / 2;

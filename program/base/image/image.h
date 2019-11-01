@@ -464,8 +464,8 @@ Vec3f Image::GetColor(const float x, const float y, const int level) const {
   return Vec3f(r, g, b);
 #else
   // Bilinear case
-  const int lx = static_cast<int>(x);
-  const int ly = static_cast<int>(y);
+  const int lx    = static_cast<int>(x);
+  const int ly    = static_cast<int>(y);
   const int index = 3 * (ly * widths[level] + lx);
 
   const float dx1 =    x - lx;

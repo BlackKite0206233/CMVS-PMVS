@@ -47,8 +47,8 @@ void Camera::Init(const std::string cname, const int maxlevel) {
 
   //----------------------------------------------------------------------
   projection.resize(maxLevel);
-  for (int level = 0; level < maxLevel; ++level)
-    projection[level].resize(3);
+  for (auto& p : projection)
+    p.resize(3);
 
   UpdateCamera();
 }
@@ -371,11 +371,10 @@ void Camera::Proj2Q(Mat4 &mat, double q[6]) {
       q[0] = atan2(mat[0][1], mat[1][1]);
     } else {
       q[1] = (double)asin(-mat[2][0]);
-      if (cos(q[1]) > 0.0) {
+      if (cos(q[1]) > 0.0) 
         s = 1.0;
-      } else {
+      else 
         s = -1.0;
-      };
       q[0] = atan2(mat[2][1] * s, mat[2][2] * s);
       q[2] = atan2(mat[1][0] * s, mat[0][0] * s);
     }
@@ -383,11 +382,9 @@ void Camera::Proj2Q(Mat4 &mat, double q[6]) {
   q[0] = q[0] * 180 / M_PI; // RadInDeg;
   q[1] = q[1] * 180 / M_PI; // RadInDeg;
   q[2] = q[2] * 180 / M_PI; // RadInDeg;
-  for (i = 0; i < 3; i++) {
-    if (fabs(q[i]) > 180.0) {
+  for (i = 0; i < 3; i++) 
+    if (fabs(q[i]) > 180.0) 
       q[i] = (q[i] > 0) ? q[i] - 360.0 : q[i] + 360.0;
-    }
-  }
 }
 
 void Camera::Q2Proj(const double q[6], Mat4 &mat) {
@@ -424,11 +421,10 @@ void Camera::Q2Proj(const double q[6], Mat4 &mat) {
 
 float Camera::ComputeDepthDif(const Vec4f &lhs, const Vec4f &rhs) const {
   // orthographic projection case
-  if (projection[0][2][0] == 0.0 && projection[0][2][1] == 0.0 && projection[0][2][2] == 0.0) {
+  if (projection[0][2][0] == 0.0 && projection[0][2][1] == 0.0 && projection[0][2][2] == 0.0) 
     return -center * (lhs - rhs);
-  } else {
+  else 
     return   oAxis * (lhs - rhs);
-  }
 }
 
 float Camera::ComputeDistance(const Vec4f &point) const {
@@ -441,14 +437,13 @@ float Camera::ComputeDistance(const Vec4f &point) const {
 
 float Camera::ComputeDepth(const Vec4f &point) const {
   // orthographic projection case
-  if (projection[0][2][0] == 0.0 && projection[0][2][1] == 0.0 && projection[0][2][2] == 0.0) {
-
+  if (projection[0][2][0] == 0.0 && projection[0][2][1] == 0.0 && projection[0][2][2] == 0.0) 
     // cerr << "Because I'm using negative depth to represent flip. this could
     // be a problem" << endl;
     return -center * point;
-  } else {
+  else 
     return   oAxis * point;
-  }
+  
 }
 
 void Camera::GetPAxes(const Vec4f &coord, const Vec4f &normal, Vec4f &pxAxis, Vec4f &pyAxis, const int level) const {

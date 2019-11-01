@@ -47,10 +47,7 @@ int main(int argc, char *argv[]) {
 	findMatch.Run();
   }
 
-  clock_t end = clock();
-  double time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
-
-  cout << "total time: " << time_spent << endl;
+  cout << "total time: " << (double)(clock() - begin) / CLOCKS_PER_SEC << endl;
 
   bool bExportPLY   = true;
   bool bExportPatch = false;

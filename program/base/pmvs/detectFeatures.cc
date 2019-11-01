@@ -91,11 +91,8 @@ void DetectFeatures::runThread(void) {
                  ps->photos[index].GetHeight(level), cSize, sigma,
                  result);
 
-      multiset<Point>::reverse_iterator rbegin = result.rbegin();
-      while (rbegin != result.rend()) {
-        points[index].push_back(*rbegin);
-        rbegin++;
-      }
+			for (auto& r : result) 
+				points[index].push_back(r);
     }
 
     //----------------------------------------------------------------------
@@ -110,11 +107,8 @@ void DetectFeatures::runThread(void) {
               ps->photos[index].GetHeight(level), cSize, firstScale,
               lastScale, result);
 
-      multiset<Point>::reverse_iterator rbegin = result.rbegin();
-      while (rbegin != result.rend()) {
-        points[index].push_back(*rbegin);
-        rbegin++;
-      }
+			for (auto& r : result) 
+				points[index].push_back(r);
     }
   }
 }

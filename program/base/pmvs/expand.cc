@@ -29,7 +29,7 @@ void Expand::Run(void) {
   fill(fCounts1.begin(), fCounts1.end(), 0);
   fill(pCounts.begin(),  pCounts.end(),  0);
 
-  time_t starttime = time(NULL);
+	clock_t begin = clock();
 
   fm.po.ClearCounts();
   fm.po.ClearFlags();
@@ -43,13 +43,13 @@ void Expand::Run(void) {
 
   cerr << "Expanding patches..." << flush;
   vector<thrd_t> threads(fm.CPU);
-  for (int c = 0; c < fm.CPU; ++c)
-    thrd_create(&threads[c], &expandThreadTmp, (void *)this);
-  for (int c = 0; c < fm.CPU; ++c)
-    thrd_join(threads[c], NULL);
+  for (auto& t : threads)
+    thrd_create(&t, &expandThreadTmp, (void *)this);
+  for (auto& t : threads)
+    thrd_join(t, NULL);
 
   cerr << endl
-       << "---- EXPANSION: " << (time(NULL) - starttime) << " secs ----"
+       << "---- EXPANSION: " << (double)(clock() - begin) / CLOCKS_PER_SEC << " secs ----"
        << endl;
 
   const int trial = accumulate(eCounts.begin(),  eCounts.end(),  0);
@@ -93,21 +93,16 @@ void Expand::expandThread(void) {
     vector<vector<Vec4f>> canCoords;
     findEmptyBlocks(ppatch, canCoords);
 
-    for (int i = 0; i < (int)canCoords.size(); ++i) {
-      for (int j = 0; j < (int)canCoords[i].size(); ++j) {
-        const int flag = expandSub(ppatch, id, canCoords[i][j]);
-        // fail
-        if (flag)
+    for (int i = 0; i < (int)canCoords.size(); ++i) 
+      for (int j = 0; j < (int)canCoords[i].size(); ++j) 
+        if (expandSub(ppatch, id, canCoords[i][j]))
           ppatch->dFlag |= (0x0001) << i;
-      }
-    }
   }
 }
 
-void Expand::findEmptyBlocks(const pPatch &ppatch,
-                              std::vector<std::vector<Vec4f>> &canCoords) {
+void Expand::findEmptyBlocks(const pPatch &ppatch, std::vector<std::vector<Vec4f>> &canCoords) {
   // dnum must be at most 8, because dflag is char
-  const int dnum = 6;
+  const int   dnum   = 6;
   const Patch &patch = *ppatch;
 
   // Empty six directions
@@ -133,40 +128,34 @@ void Expand::findEmptyBlocks(const pPatch &ppatch,
   // ----------------------------------------------------------------------
   // Minimum number of images required to obtain high res results, and
   // explor empty blocks.
-  const float radius = ComputeRadius(patch);
+  const float radius     = ComputeRadius(patch);
   const float radiuslow  = radius / 6.0f;  // 2.0f;
   const float radiushigh = radius * 2.5f; // 2.0f;//1.5f;
 
   vector<pPatch> neighbors;
   fm.po.FindNeighbors(patch, neighbors, 1, 4.0f); // 3.0f);
 
-  vector<pPatch>::iterator bpatch = neighbors.begin();
-  vector<pPatch>::iterator epatch = neighbors.end();
-  while (bpatch != epatch) {
-    const Vec4f diff = (*bpatch)->coord - ppatch->coord;
-    Vec2f f2(diff * xdir, diff * ydir);
-    const float len = norm(f2);
-    if (len < radiuslow || radiushigh < len) {
-      ++bpatch;
-      continue;
-    }
+	for (auto& p : neighbors) {
+		const Vec4f diff = p->coord - ppatch->coord;
+		Vec2f f2(diff * xdir, diff * ydir);
+		const float len = norm(f2);
+		if (len < radiuslow || radiushigh < len)
+			continue;
 
-    f2 /= len;
-    // unitize(f2);
+		f2 /= len;
 
-    float angle = atan2(f2[1], f2[0]);
-    if (angle < 0.0)
-      angle += 2 * M_PI;
+		float angle = atan2(f2[1], f2[0]);
+		if (angle < 0.0)
+			angle += 2 * M_PI;
 
-    const float findex = angle / (2 * M_PI / dnum);
-    const int   lindex = (int)floor(findex);
-    const int   hindex = lindex + 1;
+		const float findex = angle / (2 * M_PI / dnum);
+		const int   lindex = (int)floor(findex);
+		const int   hindex = lindex + 1;
 
-    fill[lindex % dnum] += hindex - findex;
-    fill[hindex % dnum] += findex - lindex;
-    ++bpatch;
-  }
-
+		fill[lindex % dnum] += hindex - findex;
+		fill[hindex % dnum] += findex - lindex;
+	}
+	
   canCoords.resize(dnum);
   for (int i = 0; i < dnum; ++i) {
     if (0.0f < fill[i])
@@ -267,58 +256,49 @@ bool Expand::checkCounts(ptch::Patch &patch) {
   int full  = 0;
   int empty = 0;
 
-  vector<int>::iterator   begin  = patch.images.begin();
-  vector<int>::iterator   end    = patch.images.end();
-  vector<Vec2i>::iterator begin2 = patch.grids.begin();
+  auto& begin2 = patch.grids.begin();
+	for (const auto& image : patch.images) {
+		if (fm.tNum <= image) {
+			++begin2;
+			continue;
+		}
 
-  while (begin != end) {
-    const int index = *begin;
-    if (fm.tNum <= index) {
-      ++begin;
-      ++begin2;
-      continue;
-    }
+		const int ix = (*begin2)[0];
+		const int iy = (*begin2)[1];
+		if (ix < 0 || fm.po.gWidths[image] <= ix || iy < 0 || fm.po.gHeights[image] <= iy) {
+			++begin2;
+			continue;
+		}
 
-    const int ix = (*begin2)[0];
-    const int iy = (*begin2)[1];
-    if (ix < 0 || fm.po.gWidths[index] <= ix || iy < 0 || fm.po.gHeights[index] <= iy) {
-      ++begin;
-      ++begin2;
-      continue;
-    }
+		const int index2 = iy * fm.po.gWidths[image] + ix;
 
-    const int index2 = iy * fm.po.gWidths[index] + ix;
+		int flag = 0;
+		fm.imageLocks[image].rdlock();
+		if (!fm.po.pGrids[image][index2].empty())
+			flag = 1;
+		fm.imageLocks[image].unlock();
+		if (flag) {
+			++full;
+			++begin2;
+			continue;
+		}
 
-    int flag = 0;
-    fm.imageLocks[index].rdlock();
-    if (!fm.po.pGrids[index][index2].empty())
-      flag = 1;
-    fm.imageLocks[index].unlock();
-    if (flag) {
-      ++full;
-      ++begin;
-      ++begin2;
-      continue;
-    }
-
-    // mtx_lock(&fm.countLocks[index]);
-    fm.countLocks[index].rdlock();
-    if (fm.countThreshold1 <= fm.po.counts[index][index2])
-      ++full;
-    else
-      ++empty;
-    //++fm.pos.counts[index][index2];
-    fm.countLocks[index].unlock();
-    ++begin;
-    ++begin2;
-  }
+		// mtx_lock(&fm.countLocks[index]);
+		fm.countLocks[image].rdlock();
+		if (fm.countThreshold1 <= fm.po.counts[image][index2])
+			++full;
+		else
+			++empty;
+		//++fm.pos.counts[index][index2];
+		fm.countLocks[image].unlock();
+		++begin2;
+	}
 
   // First expansion is expensive and make the condition strict
-  if (fm.depth <= 1) {
+  if (fm.depth <= 1) 
     return empty < fm.minImageNumThreshold     && full != 0;
-  } else {
+  else 
     return empty < fm.minImageNumThreshold - 1 && full != 0;
-  }
 }
 
 bool Expand::updateCounts(const Patch &patch) {
@@ -327,76 +307,62 @@ bool Expand::updateCounts(const Patch &patch) {
   int empty = 0;
 
   {
-    vector<int>::const_iterator   begin  = patch.images.begin();
-    vector<int>::const_iterator   end    = patch.images.end();
-    vector<Vec2i>::const_iterator begin2 = patch.grids.begin();
+    auto& begin2 = patch.grids.begin();
+		for (const auto& image : patch.images) {
+			if (fm.tNum <= image) {
+				++begin2;
+				continue;
+			}
 
-    while (begin != end) {
-      const int index = *begin;
-      if (fm.tNum <= index) {
-        ++begin;
-        ++begin2;
-        continue;
-      }
+			const int ix = (*begin2)[0];
+			const int iy = (*begin2)[1];
+			if (ix < 0 || fm.po.gWidths[image] <= ix || iy < 0 || fm.po.gHeights[image] <= iy) {
+				++begin2;
+				continue;
+			}
 
-      const int ix = (*begin2)[0];
-      const int iy = (*begin2)[1];
-      if (ix < 0 || fm.po.gWidths[index] <= ix || iy < 0 || fm.po.gHeights[index] <= iy) {
-        ++begin;
-        ++begin2;
-        continue;
-      }
+			const int index2 = iy * fm.po.gWidths[image] + ix;
 
-      const int index2 = iy * fm.po.gWidths[index] + ix;
+			fm.countLocks[image].wrlock();
+			if (fm.countThreshold1 <= fm.po.counts[image][index2])
+				++full;
+			else
+				++empty;
+			++fm.po.counts[image][index2];
 
-      fm.countLocks[index].wrlock();
-      if (fm.countThreshold1 <= fm.po.counts[index][index2])
-        ++full;
-      else
-        ++empty;
-      ++fm.po.counts[index][index2];
-
-      fm.countLocks[index].unlock();
-      ++begin;
-      ++begin2;
-    }
+			fm.countLocks[image].unlock();
+			++begin2;
+		}
   }
 
   {
-    vector<int>::const_iterator begin    = patch.vImages.begin();
-    vector<int>::const_iterator end      = patch.vImages.end();
-    vector<Vec2i>::const_iterator begin2 = patch.vGrids.begin();
-
-    while (begin != end) {
-      const int index = *begin;
+    auto& begin2 = patch.vGrids.begin();
+		for (const auto& image : patch.vImages) {
 #ifdef DEBUG
-      if (fm.tnum <= index) {
-        cerr << "Impossible in updateCounts" << endl;
-        exit(1);
-      }
+			if (fm.tnum <= image) {
+				cerr << "Impossible in updateCounts" << endl;
+				exit(1);
+			}
 #endif
 
-      const int ix = (*begin2)[0];
-      const int iy = (*begin2)[1];
-      if (ix < 0 || fm.po.gWidths[index] <= ix || iy < 0 || fm.po.gHeights[index] <= iy) {
-        ++begin;
-        ++begin2;
-        continue;
-      }
+			const int ix = (*begin2)[0];
+			const int iy = (*begin2)[1];
+			if (ix < 0 || fm.po.gWidths[image] <= ix || iy < 0 || fm.po.gHeights[image] <= iy) {
+				++begin2;
+				continue;
+			}
 
-      const int index2 = iy * fm.po.gWidths[index] + ix;
+			const int index2 = iy * fm.po.gWidths[image] + ix;
 
-      fm.countLocks[index].wrlock();
-      ;
-      if (fm.countThreshold1 <= fm.po.counts[index][index2])
-        ++full;
-      else
-        ++empty;
-      ++fm.po.counts[index][index2];
-      fm.countLocks[index].unlock();
-      ++begin;
-      ++begin2;
-    }
+			fm.countLocks[image].wrlock();
+			if (fm.countThreshold1 <= fm.po.counts[image][index2])
+				++full;
+			else
+				++empty;
+			++fm.po.counts[image][index2];
+			fm.countLocks[image].unlock();
+			++begin2;
+		}
   }
 
   return empty;

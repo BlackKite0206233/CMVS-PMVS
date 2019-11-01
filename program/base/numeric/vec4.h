@@ -188,8 +188,7 @@ template <class T> inline TVec4<T> cross(const TVec4<T> &a, const TVec4<T> &b, c
 
 template <class T> inline TVec4<T> cross(const TVec4<T> &u, const TVec4<T> &v) {
   // Code adapted from VecLib4d.c in Graphics Gems V
-  return TVec4<T>(u[1] * v[2] - v[1] * u[2], -u[0] * v[2] + v[0] * u[2],
-                  u[0] * v[1] - v[0] * u[1], 0);
+  return TVec4<T>(u[1] * v[2] - v[1] * u[2], -u[0] * v[2] + v[0] * u[2], u[0] * v[1] - v[0] * u[1], 0);
 };
 
 template <class T> inline T norm2(const TVec4<T> &v) { return v * v; };

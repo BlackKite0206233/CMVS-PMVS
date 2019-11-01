@@ -18,10 +18,10 @@ FindMatch::FindMatch(void) : po(*this), seed(*this), expand(*this), filter(*this
 FindMatch::~FindMatch() {
   mtx_destroy(&lock);
 
-  for (int image = 0; image < (int)imageLocks.size(); ++image)
-    imageLocks[image].destroy();
-  for (int image = 0; image < (int)countLocks.size(); ++image)
-    countLocks[image].destroy();
+  for (auto& imgLock : imageLocks)
+		imgLock.destroy();
+  for (auto& cntLock : countLocks)
+		cntLock.destroy();
 }
 
 void FindMatch::updateThreshold(void) {
@@ -116,8 +116,7 @@ void FindMatch::Init(const Soption &option) {
 }
 
 bool FindMatch::InsideBimages(const Vec4f &coord) const {
-  for (int i = 0; i < (int)bindexes.size(); ++i) {
-    const int index = bindexes[i];
+  for (const auto& index : bindexes) {
     const Vec3f icoord = ps.Project(index, coord, level);
     if (icoord[0] < 0.0 || ps.GetWidth(index, level)  - 1 < icoord[0] ||
         icoord[1] < 0.0 || ps.GetHeight(index, level) - 1 < icoord[1])
@@ -136,8 +135,8 @@ bool FindMatch::IsNeighbor(const ptch::Patch &lhs, const ptch::Patch &rhs, const
 bool FindMatch::IsNeighbor(const ptch::Patch &lhs, const ptch::Patch &rhs, const float hunit, const float neighborThreshold) const {
   if (lhs.normal * rhs.normal < cos(120.0 * M_PI / 180.0))
     return false;
-  const Vec4f diff = rhs.coord - lhs.coord;
 
+  const Vec4f diff  = rhs.coord  - lhs.coord;
   const float vunit = lhs.dScale + rhs.dScale;
 
   const float f0 = lhs.normal * diff;
@@ -157,8 +156,8 @@ bool FindMatch::IsNeighbor(const ptch::Patch &lhs, const ptch::Patch &rhs, const
 bool FindMatch::IsNeighborRadius(const ptch::Patch &lhs, const ptch::Patch &rhs, const float hunit, const float neighborThreshold, const float radius) const {
   if (lhs.normal * rhs.normal < cos(120.0 * M_PI / 180.0))
     return false;
-  const Vec4f diff = rhs.coord - lhs.coord;
 
+  const Vec4f diff  = rhs.coord  - lhs.coord;
   const float vunit = lhs.dScale + rhs.dScale;
 
   const float f0 = lhs.normal * diff;
@@ -181,9 +180,7 @@ bool FindMatch::IsNeighborRadius(const ptch::Patch &lhs, const ptch::Patch &rhs,
 }
 
 void FindMatch::Run(void) {
-  time_t tv;
-  time(&tv);
-  time_t curtime = tv;
+	clock_t begin = clock();
 
   //----------------------------------------------------------------------
   // Seed generation
@@ -212,8 +209,8 @@ void FindMatch::Run(void) {
 
     ++depth;
   }
-  time(&tv);
-  cerr << "---- Total: " << (tv - curtime) / CLOCKS_PER_SEC << " secs ----" << endl;
+
+  cerr << "---- Total: " << (double)(clock() - begin) / CLOCKS_PER_SEC << " secs ----" << endl;
 }
 
 void FindMatch::Write(const std::string prefix, bool bExportPLY, bool bExportPatch, bool bExportPSet) {

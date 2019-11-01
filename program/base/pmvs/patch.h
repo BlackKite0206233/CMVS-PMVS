@@ -81,10 +81,7 @@ typedef boost::shared_ptr<Patch> pPatch;
 
 struct Spatchcmp {
   bool operator()(const pPatch& lhs, const pPatch& rhs) {
-    if (lhs.get() < rhs.get())
-      return true;
-    else
-      return false;
+		return lhs.get() < rhs.get();
   }
 };
 

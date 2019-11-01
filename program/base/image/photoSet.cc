@@ -102,7 +102,7 @@ void PhotoSet::Free(void) {
 
 void PhotoSet::Free(const int level) {
   for (auto& p : photos)
-	p.Free(level);
+		p.Free(level);
 }
 
 void PhotoSet::SetEdge(const float threshold) {
@@ -126,14 +126,14 @@ void PhotoSet::GetPAxes(const int index, const Vec4f &coord, const Vec4f &normal
 }
 
 void PhotoSet::GrabTex(const int index, const int level, const Vec2f &icoord, 
-					   const Vec2f &xAxis, const Vec2f &yAxis, std::vector<Vec3f> &tex, const int normalizef) const {
+											 const Vec2f &xAxis, const Vec2f &yAxis, std::vector<Vec3f> &tex, const int normalizef) const {
   photos[index].GrabTex(level, icoord, xAxis, yAxis, size, tex, normalizef);
 }
 
 // grabTex given 3D sampling information
 void PhotoSet::GrabTex(const int index, const int level, const Vec4f &coord,
                        const Vec4f &pxAxis, const Vec4f &pyAxis, const Vec4f &pzAxis, 
-					   std::vector<Vec3f> &tex, float &weight, const int normalizef) const {
+											 std::vector<Vec3f> &tex, float &weight, const int normalizef) const {
   photos[index].GrabTex(level, coord, pxAxis, pyAxis, pzAxis, size, tex, weight, normalizef);
 }
 

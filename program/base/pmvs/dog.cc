@@ -10,8 +10,8 @@ int Dog::notOnEdge(const std::vector<std::vector<float>> &dog, int x, int y) {
   // const float thresholdEdge = 0.06f;
   const float thresholdEdge = 0.06f;
 
-  const float H00 = dog[y][x - 1] - 2.0f * dog[y][x] + dog[y][x + 1];
-  const float H11 = dog[y - 1][x] - 2.0f * dog[y][x] + dog[y + 1][x];
+  const float H00 = dog[y    ][x - 1] - 2.0f * dog[y][x] + dog[y    ][x + 1];
+  const float H11 = dog[y - 1][x    ] - 2.0f * dog[y][x] + dog[y + 1][x    ];
   const float H01 = ((dog[y + 1][x + 1] - dog[y - 1][x + 1]) -
                      (dog[y + 1][x - 1] - dog[y - 1][x - 1])) /
                     4.0f;
@@ -24,13 +24,10 @@ float Dog::getResponse(const std::vector<std::vector<float>> &pdog,
                        const std::vector<std::vector<float>> &cdog,
                        const std::vector<std::vector<float>> &ndog,
                        const int x, const int y) {
-  return fabs(getResponse(pdog, x, y) + getResponse(cdog, x, y) +
-              getResponse(ndog, x, y) + (cdog[y][x] - pdog[y][x]) +
-              (cdog[y][x] - ndog[y][x]));
+  return fabs(getResponse(pdog, x, y) + getResponse(cdog, x, y) + getResponse(ndog, x, y) + (cdog[y][x] - pdog[y][x]) + (cdog[y][x] - ndog[y][x]));
 }
 
-float Dog::getResponse(const std::vector<std::vector<float>> &dog, const int x,
-                       const int y) {
+float Dog::getResponse(const std::vector<std::vector<float>> &dog, const int x, const int y) {
   const float sum = dog[y - 1][x - 1] + dog[y    ][x - 1] + dog[y + 1][x - 1] +
                     dog[y - 1][x    ]                     + dog[y + 1][x    ] + 
                     dog[y - 1][x + 1] + dog[y    ][x + 1] + dog[y + 1][x + 1];
@@ -38,8 +35,7 @@ float Dog::getResponse(const std::vector<std::vector<float>> &dog, const int x,
   return 8 * dog[y][x] - sum;
 }
 
-int Dog::isLocalMax(const std::vector<std::vector<float>> &dog, const int x,
-                    const int y) {
+int Dog::isLocalMax(const std::vector<std::vector<float>> &dog, const int x, const int y) {
   const float value = dog[y][x];
 
   if (0.0 < value) {
@@ -60,8 +56,8 @@ int Dog::isLocalMax(const std::vector<std::vector<float>> &dog, const int x,
 
 int Dog::isLocalMax(const std::vector<std::vector<float>> &pdog,
                     const std::vector<std::vector<float>> &cdog,
-                    const std::vector<std::vector<float>> &ndog, const int x,
-                    const int y) {
+                    const std::vector<std::vector<float>> &ndog, 
+										const int x, const int y) {
   /*
   const int flag0 = isLocalMax(pdog, x, y);
   const int flag1 = isLocalMax(cdog, x, y);
@@ -99,9 +95,7 @@ int Dog::isLocalMax(const std::vector<std::vector<float>> &pdog,
   return 0;
 }
 
-void Dog::setDOG(const std::vector<std::vector<float>> &cres,
-                 const std::vector<std::vector<float>> &nres,
-                 std::vector<std::vector<float>> &dog) {
+void Dog::setDOG(const std::vector<std::vector<float>> &cres, const std::vector<std::vector<float>> &nres, std::vector<std::vector<float>> &dog) {
   const int height = (int)cres.size();
   const int width  = (int)cres[0].size();
 
@@ -148,7 +142,7 @@ void Dog::Run(const std::vector<unsigned char> &image,
 
   const float scalestep = pow(2.0f, 1 / 2.0f);
   // const float scalestep = pow(2.0f, 1.0f);
-  const int steps =  max(4, (int)ceil(log(lastScale / firstScale) / log(scalestep)));
+  const int steps = max(4, (int)ceil(log(lastScale / firstScale) / log(scalestep)));
 
   vector<vector<float>> pdog, cdog, ndog, cres, nres;
 
@@ -208,17 +202,11 @@ void Dog::Run(const std::vector<unsigned char> &image,
     }
   }
 
-  for (int y = 0; y < h; ++y)
-    for (int x = 0; x < w; ++x) {
+  for (const auto& row : resultgrids)
+    for (const auto& c : row) 
       // const float threshold = setThreshold(resultgrids[y][x]);
-      multiset<Point>::iterator begin = resultgrids[y][x].begin();
-      multiset<Point>::iterator end   = resultgrids[y][x].end();
-      while (begin != end) {
-        // if (threshold <= begin->response)
-        result.insert(*begin);
-        begin++;
-      }
-    }
+			for (const auto& grid : c) 
+				result.insert(grid);
 
   cerr << (int)result.size() << " dog done" << endl;
 }
@@ -250,34 +238,34 @@ void Dog::init(const std::vector<unsigned char> &image,
   this->image.clear();
   this->image.resize(height);
   int count = 0;
-  for (int y = 0; y < height; ++y) {
-    this->image[y].resize(width);
-    for (int x = 0; x < width; ++x) {
-	  this->image[y][x][0] = ((int)image[count++]) / 255.0f;
-	  this->image[y][x][1] = ((int)image[count++]) / 255.0f;
-	  this->image[y][x][2] = ((int)image[count++]) / 255.0f;
-    }
+  for (auto& row : this->image) {
+		row.resize(width);
+		for (auto& c : row) {
+			c[0] = ((int)image[count++]) / 255.0f;
+			c[1] = ((int)image[count++]) / 255.0f;
+			c[2] = ((int)image[count++]) / 255.0f;
+		}
   }
 
   this->mask.clear();
   if (!mask.empty() || !edge.empty()) {
     this->mask.resize(height);
     count = 0;
-    for (int y = 0; y < height; ++y) {
-      this->mask[y].resize(width);
-      for (int x = 0; x < width; ++x) {
-        if (mask.empty())
-		  this->mask[y][x] = edge[count++];
-        else if (edge.empty())
-		  this->mask[y][x] = mask[count++];
-        else {
-          if (mask[count] && edge[count])
-			this->mask[y][x] = (unsigned char)255;
-          else
-		    this->mask[y][x] = 0;
-          count++;
-        }
-      }
+    for (auto& row : this->mask) {
+			row.resize(width);
+			for (auto& m : row) {
+				if (mask.empty())
+					m = edge[count++];
+				else if (edge.empty())
+					m = mask[count++];
+				else {
+					if (mask[count] && edge[count])
+						m = (unsigned char)255;
+					else
+						m = 0;
+					count++;
+				}
+			}
     }
   }
 }
