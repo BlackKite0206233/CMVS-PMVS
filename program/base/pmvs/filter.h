@@ -16,7 +16,7 @@ public:
   void Init(void);
   void Run(void);
 
-  float ComputeGain(const ptch::Patch &patch, const int lock);
+  float ComputeGain(const ptch::Patch &patch, const bool lock);
 
   bool FilterQuad(const ptch::Patch &patch, const std::vector<ptch::pPatch> &neighbors) const;
 
@@ -33,7 +33,7 @@ protected:
   void filterSmallGroups(void);
   void filterSmallGroupsSub(const int pid, const int id, std::vector<int> &label, std::list<int> &ltmp) const;
   void setDepthMaps(void);
-  void setDepthMapsVGridsVPGridsAddPatchV(const int additive);
+  void setDepthMapsVGridsVPGridsAddPatchV(const bool additive);
 
   void setConf(const int image);
 

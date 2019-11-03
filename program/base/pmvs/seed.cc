@@ -161,8 +161,8 @@ void Seed::initialMatch(const int index, const int id) {
           patch.flag = 0;
 
           ++fm.po.counts[index][index2];
-          const int ix = ((int)floor(v->iCoord[0] + 0.5f)) / fm.cSize;
-          const int iy = ((int)floor(v->iCoord[1] + 0.5f)) / fm.cSize;
+          const int ix     = ((int)floor(v->iCoord[0] + 0.5f)) / fm.cSize;
+          const int iy     = ((int)floor(v->iCoord[1] + 0.5f)) / fm.cSize;
           const int index3 = iy * fm.po.gWidths[v->iTmp] + ix;
           if (v->iTmp < fm.tNum)
             ++fm.po.counts[v->iTmp][index3];

@@ -65,8 +65,8 @@ void Optim::setAxesScales(void) {
     const Vec4f xaxe(xAxes[index][0], xAxes[index][1], xAxes[index][2], 0.0);
     const Vec4f yaxe(yAxes[index][0], yAxes[index][1], yAxes[index][2], 0.0);
 
-    const float fx = xaxe * fm.ps.photos[index].projection[0][0];
-    const float fy = yaxe * fm.ps.photos[index].projection[0][1];
+    const float fx  = xaxe * fm.ps.photos[index].projection[0][0];
+    const float fy  = yaxe * fm.ps.photos[index].projection[0][1];
     ipScales[index] = fx + fy;
   }
 }
@@ -542,10 +542,7 @@ double Optim::my_f(unsigned n, const double *x, double *grad, void *my_func_data
       denom++;
     }
     // if (denom < one->fm.minImageNumThreshold - 1)
-    if (denom < mininum - 1)
-      ret = 2.0f;
-    else
-      ret = ans / denom + bias;
+    ret = (denom < mininum - 1) ? 2.0f : ans / denom + bias;
   }
 
   return ret;
@@ -631,10 +628,10 @@ void Optim::encode(const Vec4f &coord, double *const vect, const int id) const {
 void Optim::encode(const Vec4f &coord, const Vec4f &normal, double *const vect, const int id) const {
   encode(coord, vect, id);
 
-  const int image = indexesT[id][0];
-  const float fx  = xAxes[image] * proj(normal); // projects from 4D to 3D, divide by last value
-  const float fy  = yAxes[image] * proj(normal);
-  const float fz  = zAxes[image] * proj(normal);
+  const int   image = indexesT[id][0];
+  const float fx    = xAxes[image] * proj(normal); // projects from 4D to 3D, divide by last value
+  const float fy    = yAxes[image] * proj(normal);
+  const float fz    = zAxes[image] * proj(normal);
 
   vect[2] = asin(max(-1.0f, min(1.0f, fy)));
   const float cosb = cos(vect[2]);
@@ -693,12 +690,9 @@ void Optim::setINCCs(const ptch::Patch &patch, std::vector<float> &inccs, const 
   for (int i = 0; i < size; ++i) {
     if (!i)
       inccs[i] = 0.0f;
-    else if (!texs[i].empty()) {
-      if (!robust)
-        inccs[i] = 1.0f - Dot(texs[0], texs[i]);
-      else
-        inccs[i] = RobustINCC(1.0f - Dot(texs[0], texs[i]));
-    } else
+    else if (!texs[i].empty())
+      inccs[i] = (!robust) ? 1.0f - Dot(texs[0], texs[i]) : RobustINCC(1.0f - Dot(texs[0], texs[i]));
+    else
       inccs[i] = 2.0f;
   }
 }
@@ -722,12 +716,9 @@ void Optim::setINCCs(const ptch::Patch &patch, std::vector<std::vector<float>> &
   for (int i = 0; i < size; ++i) {
     inccs[i][i] = 0.0f;
     for (int j = i + 1; j < size; ++j) {
-      if (!texs[i].empty() && !texs[j].empty()) {
-        if (!robust)
-          inccs[j][i] = inccs[i][j] = 1.0f - Dot(texs[i], texs[j]);
-        else
-          inccs[j][i] = inccs[i][j] = RobustINCC(1.0f - Dot(texs[i], texs[j]));
-      } else
+      if (!texs[i].empty() && !texs[j].empty())
+        inccs[j][i] = inccs[i][j] = (!robust) ? 1.0f - Dot(texs[i], texs[j]) : RobustINCC(1.0f - Dot(texs[i], texs[j]));
+      else
         inccs[j][i] = inccs[i][j] = 2.0f;
     }
   }
@@ -792,8 +783,8 @@ bool Optim::grabTex(const Vec4f &coord, const Vec4f &pxaxis, const Vec4f &pyaxis
 
   // const float scale = pow(2.0f, (float)leveldif);
 
-  const float scale = MyPow2(leveldif);
-  const int newlevel = fm.level + leveldif;
+  const float scale    = MyPow2(leveldif);
+  const int   newlevel = fm.level + leveldif;
 
   center /= scale;
   dx     /= scale;

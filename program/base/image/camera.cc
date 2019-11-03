@@ -302,7 +302,7 @@ void Camera::SetProjectionSub(double params[], std::vector<Vec4f> &projection, c
 
   const double fovx = params[0] * M_PI / 180.0;
 
-  const double f = params[1] / 2.0 / tan(fovx / 2.0);
+  const double f    = params[1] / 2.0 / tan(fovx / 2.0);
   Mat3 K;
   K[0] = Vec3(  f, 0.0,  0.0);
   K[1] = Vec3(0.0,   f,  0.0);

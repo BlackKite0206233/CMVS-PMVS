@@ -107,8 +107,8 @@ void Dog::setDOG(const std::vector<std::vector<float>> &cres, const std::vector<
 
 void Dog::Run(const std::vector<unsigned char> &image,
               const std::vector<unsigned char> &mask,
-              const std::vector<unsigned char> &edge, const int width,
-              const int height, const int gspeedup,
+              const std::vector<unsigned char> &edge, 
+							const int width, const int height, const int gspeedup,
               const float firstScale, // 1.4f
               const float lastScale,  // 4.0f
               std::multiset<Point> &result) {
@@ -121,9 +121,9 @@ void Dog::Run(const std::vector<unsigned char> &image,
 
   init(image, mask, edge);
 
-  const int factor = 2;
+  const int factor        = 2;
   const int maxPointsGrid = factor * factor;
-  const int gridsize = gspeedup * factor;
+  const int gridsize      = gspeedup * factor;
 
   const int w = (this->width  + gridsize - 1) / gridsize;
   const int h = (this->height + gridsize - 1) / gridsize;
@@ -142,7 +142,7 @@ void Dog::Run(const std::vector<unsigned char> &image,
 
   const float scalestep = pow(2.0f, 1 / 2.0f);
   // const float scalestep = pow(2.0f, 1.0f);
-  const int steps = max(4, (int)ceil(log(this->lastScale / this->firstScale) / log(scalestep)));
+  const int   steps     = max(4, (int)ceil(log(this->lastScale / this->firstScale) / log(scalestep)));
 
   vector<vector<float>> pdog, cdog, ndog, cres, nres;
 
@@ -259,10 +259,7 @@ void Dog::init(const std::vector<unsigned char> &image,
 				else if (edge.empty())
 					m = mask[count++];
 				else {
-					if (mask[count] && edge[count])
-						m = (unsigned char)255;
-					else
-						m = 0;
+					m = (mask[count] && edge[count]) ? (unsigned char)255 : 0;
 					count++;
 				}
 			}

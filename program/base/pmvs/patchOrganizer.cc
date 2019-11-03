@@ -78,7 +78,7 @@ void PatchOrganizer::Init(void) {
   }
 }
 
-void PatchOrganizer::WritePatches2(const std::string prefix, bool bExportPLY, bool bExportptch, bool bExportPSet) {
+void PatchOrganizer::WritePatches2(const std::string prefix, const bool bExportPLY, const bool bExportptch, const bool bExportPSet) {
   CollectPatches(1);
 
   if (bExportPLY) {
@@ -325,8 +325,8 @@ void PatchOrganizer::SetGridsImages(ptch::Patch &patch, const std::vector<int> &
 
 	for (const auto& image : images) {
 		const Vec3f icoord = fm.ps.Project(image, patch.coord, fm.level);
-		const int ix = ((int)floor(icoord[0] + 0.5f)) / fm.cSize;
-		const int iy = ((int)floor(icoord[1] + 0.5f)) / fm.cSize;
+		const int   ix     = ((int)floor(icoord[0] + 0.5f)) / fm.cSize;
+		const int   iy     = ((int)floor(icoord[1] + 0.5f)) / fm.cSize;
 		if (0 <= ix && ix < gWidths[image] &&
 			  0 <= iy && iy < gHeights[image]) {
 			patch.images.push_back(image);
@@ -385,8 +385,8 @@ void PatchOrganizer::RemovePatch(const pPatch &ppatch) {
     if (fm.tNum <= image)
       continue;
 
-    const int &ix = ppatch->grids[i][0];
-    const int &iy = ppatch->grids[i][1];
+    const int ix    = ppatch->grids[i][0];
+    const int iy    = ppatch->grids[i][1];
     const int index = iy * gWidths[image] + ix;
     pGrids[image][index].erase(remove(pGrids[image][index].begin(),
                                         pGrids[image][index].end(), ppatch),
@@ -403,8 +403,8 @@ void PatchOrganizer::RemovePatch(const pPatch &ppatch) {
     }
 #endif
 
-    const int &ix = ppatch->vGrids[i][0];
-    const int &iy = ppatch->vGrids[i][1];
+    const int ix    = ppatch->vGrids[i][0];
+    const int iy    = ppatch->vGrids[i][1];
     const int index = iy * gWidths[image] + ix;
     vpGrids[image][index].erase(remove(vpGrids[image][index].begin(),
                                          vpGrids[image][index].end(), ppatch),
@@ -420,9 +420,9 @@ bool PatchOrganizer::IsVisible0(const Patch &patch, const int image, int &ix, in
   return IsVisible(patch, image, ix, iy, strict, lock);
 }
 
-bool PatchOrganizer::IsVisible(const Patch &patch, const int image, const int &ix, const int &iy, const float strict, const bool lock) {
-  const int &gwidth  = gWidths[image];
-  const int &gheight = gHeights[image];
+bool PatchOrganizer::IsVisible(const Patch &patch, const int image, const int ix, const int iy, const float strict, const bool lock) {
+  const int gwidth  = gWidths[image];
+  const int gheight = gHeights[image];
 
   if (ix < 0 || gwidth <= ix || iy < 0 || gheight <= iy)
     return false;
@@ -450,7 +450,7 @@ bool PatchOrganizer::IsVisible(const Patch &patch, const int image, const int &i
 
   Vec4f ray = patch.coord - fm.ps.photos[image].center;
   unitize(ray);
-  const float diff = ray * (patch.coord - dppatch->coord);
+  const float diff   = ray * (patch.coord - dppatch->coord);
   const float factor = min(2.0, 2.0 + ray * patch.normal);
 
   return diff < fm.optim.GetUnit(image, patch.coord) * fm.cSize * strict * factor;
@@ -479,8 +479,8 @@ void PatchOrganizer::FindNeighbors(const ptch::Patch &patch, std::vector<ptch::p
 			continue;
 		}
 
-		const int& ix = (*bgrid)[0];
-		const int& iy = (*bgrid)[1];
+		const int ix = (*bgrid)[0];
+		const int iy = (*bgrid)[1];
 
 		if (lock)
 			fm.imageLocks[image].rdlock();
@@ -513,8 +513,8 @@ void PatchOrganizer::FindNeighbors(const ptch::Patch &patch, std::vector<ptch::p
   if (!skipvis) {
     bgrid  = patch.vGrids.begin();
 		for (const auto& image : patch.vImages) {
-			const int& ix = (*bgrid)[0];
-			const int& iy = (*bgrid)[1];
+			const int ix = (*bgrid)[0];
+			const int iy = (*bgrid)[1];
 			if (lock)
 				fm.imageLocks[image].rdlock();
 

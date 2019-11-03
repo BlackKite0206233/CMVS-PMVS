@@ -207,8 +207,7 @@ bool Expand::expandSub(const pPatch &orgppatch, const int id, const Vec4f &canCo
     return true;
 
   // Check counts and maybe pgrids
-  const bool flag = checkCounts(patch);
-  if (flag)
+  if (checkCounts(patch))
     return true;
 
   // Check edge
@@ -295,10 +294,7 @@ bool Expand::checkCounts(ptch::Patch &patch) {
 	}
 
   // First expansion is expensive and make the condition strict
-  if (fm.depth <= 1) 
-    return empty < fm.minImageNumThreshold     && full != 0;
-  else 
-    return empty < fm.minImageNumThreshold - 1 && full != 0;
+  return (fm.depth <= 1) ? (empty < fm.minImageNumThreshold && full != 0) : (empty < fm.minImageNumThreshold - 1 && full != 0);
 }
 
 bool Expand::updateCounts(const Patch &patch) {

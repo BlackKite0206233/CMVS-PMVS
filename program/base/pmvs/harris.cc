@@ -30,10 +30,7 @@ void Harris::init(const std::vector<unsigned char> &image, const std::vector<uns
 				else if (edge.empty())
 					m = mask[count++];
 				else {
-					if (mask[count] && edge[count])
-						m = (unsigned char)255;
-					else
-						m = 0;
+					m = (mask[count] && edge[count]) ? (unsigned char)255 : 0;
 					count++;
 				}
 			}
@@ -169,8 +166,8 @@ void Harris::setResponse(void) {
 
 void Harris::Run(const std::vector<unsigned char> &image,
                  const std::vector<unsigned char> &mask,
-                 const std::vector<unsigned char> &edge, const int width,
-                 const int height, const int gspeedup, const float sigma,
+                 const std::vector<unsigned char> &edge, 
+								 const int width, const int height, const int gspeedup, const float sigma,
                  std::multiset<Point> &result) {
   cerr << "Harris running ..." << flush;
 

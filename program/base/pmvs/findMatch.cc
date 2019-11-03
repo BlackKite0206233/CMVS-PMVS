@@ -31,7 +31,7 @@ void FindMatch::updateThreshold(void) {
   countThreshold1 = 2;
 }
 
-void FindMatch::Init(const Soption &option) {
+void FindMatch::Init(const Option &option) {
   tImages = option.tImages;
   oImages = option.oImages;
   images.clear();
@@ -213,6 +213,6 @@ void FindMatch::Run(void) {
   cerr << "---- Total: " << (double)(clock() - begin) / CLOCKS_PER_SEC << " secs ----" << endl;
 }
 
-void FindMatch::Write(const std::string prefix, bool bExportPLY, bool bExportPatch, bool bExportPSet) {
+void FindMatch::Write(const std::string prefix, const bool bExportPLY, const bool bExportPatch, const bool bExportPSet) {
   po.WritePatches2(prefix, bExportPLY, bExportPatch, bExportPSet);
 }

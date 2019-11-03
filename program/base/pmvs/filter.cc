@@ -80,17 +80,17 @@ void Filter::filterOutside(void) {
        << "%)\t" << (double)(clock() - begin) / CLOCKS_PER_SEC << " secs" << endl;
 }
 
-float Filter::ComputeGain(const ptch::Patch &patch, const int lock) {
+float Filter::ComputeGain(const ptch::Patch &patch, const bool lock) {
   float gain = patch.Score2(fm.nccThreshold);
 
   const int size = (int)patch.images.size();
   for (int i = 0; i < size; ++i) {
-    const int &index = patch.images[i];
+    const int index = patch.images[i];
     if (fm.tNum <= index)
       continue;
 
-    const int &ix    = patch.grids[i][0];
-    const int &iy    = patch.grids[i][1];
+    const int ix     = patch.grids[i][0];
+    const int iy     = patch.grids[i][1];
     const int index2 = iy * fm.po.gWidths[index] + ix;
 
     float maxpressure = 0.0f;
@@ -109,14 +109,14 @@ float Filter::ComputeGain(const ptch::Patch &patch, const int lock) {
 
   const int vsize = (int)patch.vImages.size();
   for (int i = 0; i < vsize; ++i) {
-    const int &index = patch.vImages[i];
+    const int index = patch.vImages[i];
     if (fm.tNum <= index)
       continue;
 
     const float pdepth = fm.ps.ComputeDepth(index, patch.coord);
 
-    const int &ix = patch.vGrids[i][0];
-    const int &iy = patch.vGrids[i][1];
+    const int ix     = patch.vGrids[i][0];
+    const int iy     = patch.vGrids[i][1];
     const int index2 = iy * fm.po.gWidths[index] + ix;
     float maxpressure = 0.0f;
 
@@ -153,12 +153,12 @@ void Filter::filterOutsideThread(void) {
 
     const int size = (int)ppatch->images.size();
     for (int i = 0; i < size; ++i) {
-      const int &index = ppatch->images[i];
+      const int index = ppatch->images[i];
       if (fm.tNum <= index)
         continue;
 
-      const int &ix = ppatch->grids[i][0];
-      const int &iy = ppatch->grids[i][1];
+      const int ix     = ppatch->grids[i][0];
+      const int iy     = ppatch->grids[i][1];
       const int index2 = iy * fm.po.gWidths[index] + ix;
 
       float maxpressure = 0.0f;
@@ -171,14 +171,14 @@ void Filter::filterOutsideThread(void) {
 
     const int vsize = (int)ppatch->vImages.size();
     for (int i = 0; i < vsize; ++i) {
-      const int &index = ppatch->vImages[i];
+      const int index = ppatch->vImages[i];
       if (fm.tNum <= index)
         continue;
 
       const float pdepth = fm.ps.ComputeDepth(index, ppatch->coord);
 
-      const int &ix    = ppatch->vGrids[i][0];
-      const int &iy    = ppatch->vGrids[i][1];
+      const int ix     = ppatch->vGrids[i][0];
+      const int iy     = ppatch->vGrids[i][1];
       const int index2 = iy * fm.po.gWidths[index] + ix;
       float maxpressure = 0.0f;
 
@@ -258,7 +258,7 @@ void Filter::filterExact(void) {
     // for-loop.
     patch.tImages = (int)newImages[p].size();
     for (int i = 0; i < (int)patch.images.size(); ++i) {
-      const int &index = patch.images[i];
+      const int index = patch.images[i];
       if (fm.tNum <= index) {
         newImages[p].push_back(patch.images[i]);
         newGrids[p].push_back(patch.grids[i]);
@@ -303,8 +303,8 @@ void Filter::filterExactThread(void) {
 
     cerr << '*' << flush;
 
-    const int &w = fm.po.gWidths[image];
-    const int &h = fm.po.gHeights[image];
+    const int w = fm.po.gWidths[image];
+    const int h = fm.po.gHeights[image];
     int index = -1;
     for (int y = 0; y < h; ++y) {
       for (int x = 0; x < w; ++x) {
@@ -697,12 +697,12 @@ void Filter::setDepthMapsThread(void) {
 
 		for (const auto& patch : fm.po.pPatches) {
 			const Vec3f icoord = fm.ps.Project(index, patch->coord, fm.level);
-			const float fx = icoord[0] / fm.cSize;
-			const int   xs[2] = { (int)floor(fx), (int)ceil(fx) };
-			const float fy = icoord[1] / fm.cSize;
-			const int   ys[2] = { (int)floor(fy), (int)ceil(fy) };
+			const float fx     = icoord[0] / fm.cSize;
+			const int   xs[2]  = { (int)floor(fx), (int)ceil(fx) };
+			const float fy     = icoord[1] / fm.cSize;
+			const int   ys[2]  = { (int)floor(fy), (int)ceil(fy) };
 
-			const float depth = fm.ps.photos[index].oAxis * patch->coord;
+			const float depth  = fm.ps.photos[index].oAxis * patch->coord;
 
 			for (int j = 0; j < 2; ++j) {
 				for (int i = 0; i < 2; ++i) {
@@ -721,7 +721,7 @@ void Filter::setDepthMapsThread(void) {
   }
 }
 
-void Filter::setDepthMapsVGridsVPGridsAddPatchV(const int additive) {
+void Filter::setDepthMapsVGridsVPGridsAddPatchV(const bool additive) {
   fm.po.CollectPatches();
   setDepthMaps();
 
@@ -799,8 +799,8 @@ void Filter::addPatchVThread(void) {
 			auto& bgrid = patch->vGrids.begin();
 			for (const auto& image : patch->vImages) {
 				if (image == index) {
-					const int& ix = (*bgrid)[0];
-					const int& iy = (*bgrid)[1];
+					const int ix     = (*bgrid)[0];
+					const int iy     = (*bgrid)[1];
 					const int index2 = iy * fm.po.gWidths[index] + ix;
 					fm.po.vpGrids[index][index2].push_back(patch);
 					break;

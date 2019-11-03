@@ -9,7 +9,7 @@
 using namespace std;
 using namespace PMVS3;
 
-Soption::Soption(void) {
+Option::Option(void) {
   level       = 1;
   cSize       = 2;
   threshold   = 0.7;
@@ -29,7 +29,7 @@ Soption::Soption(void) {
   quadThreshold = 2.5f;
 }
 
-void Soption::Init(const std::string prefix, const std::string option) {
+void Option::Init(const std::string prefix, const std::string option) {
   this->prefix = prefix;
   this->option = option;
   std::ifstream ifstr;
@@ -153,7 +153,7 @@ void Soption::Init(const std::string prefix, const std::string option) {
   cerr << "--------------------------------------------------" << endl;
 }
 
-void Soption::initOimages(void) {
+void Option::initOimages(void) {
   if (oFlag != -2)
     return;
 
@@ -194,7 +194,7 @@ void Soption::initOimages(void) {
 }
 
 // When do not use vis.dat
-void Soption::initVisdata(void) {
+void Option::initVisdata(void) {
   // Case classifications. Set visData by using vis.dat or not.
   if (useVisData == 0) {
     const int tnum = (int)tImages.size();
@@ -217,7 +217,7 @@ void Soption::initVisdata(void) {
 }
 
 // Given timages and oimages, set visData, visData2
-void Soption::initVisdata2(void) {
+void Option::initVisdata2(void) {
   string svisData = prefix + string("vis.dat");
 
   vector<int> images;
@@ -285,7 +285,7 @@ void Soption::initVisdata2(void) {
   }
 }
 
-void Soption::initBindexes(const std::string sbimages) {
+void Option::initBindexes(const std::string sbimages) {
   if (sbimages.empty())
     return;
 

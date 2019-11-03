@@ -19,7 +19,7 @@ public:
 
   // grabTex given 2D sampling information
   void GrabTex(const int level, const Vec2f &iCoord, const Vec2f &xAxis, const Vec2f &yAxis, 
-			   const int size, std::vector<Vec3f> &tex, const bool normalizef = true) const;
+							 const int size, std::vector<Vec3f> &tex, const bool normalizef = true) const;
 
   // grabTex given 3D sampling information
   void GrabTex(const int level, const Vec4f &coord, const Vec4f &pxAxis, const Vec4f &pyAxis, const Vec4f &pzAxis, 
@@ -46,7 +46,7 @@ Vec3f Photo::GetColor(const float fx, const float fy, const int level) const {
 };
 
 Vec3f Photo::GetColor(const Vec4f &coord, const int level) const {
-  const Vec3f icoord = Project(coord, level);
+  const Vec3f& icoord = Project(coord, level);
   return Image::GetColor(icoord[0], icoord[1], level);
 };
 
@@ -54,7 +54,7 @@ int Photo::GetMask(const Vec4f &coord, const int level) const {
   if (masks[level].empty())
     return 1;
 
-  const Vec3f icoord = Project(coord, level);
+  const Vec3f& icoord = Project(coord, level);
   return Image::GetMask(icoord[0], icoord[1], level);
 };
 
@@ -62,7 +62,7 @@ int Photo::GetEdge(const Vec4f &coord, const int level) const {
   if (edges[level].empty())
     return 1;
 
-  const Vec3f iCoord = Project(coord, level);
+  const Vec3f& iCoord = Project(coord, level);
 
   if (iCoord[0] < 0 || widths[level] - 1 <= iCoord[0] || iCoord[1] < 0 || heights[level] - 1 <= iCoord[1])
     return 0;

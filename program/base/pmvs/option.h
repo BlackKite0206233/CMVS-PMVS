@@ -7,7 +7,7 @@
 
 namespace PMVS3 {
 
-struct Soption {
+struct Option {
 public:
   int   level;
   int   cSize;
@@ -36,7 +36,7 @@ public:
   std::vector<std::vector<int>> visData;
   std::vector<std::vector<int>> visData2;
 
-  Soption(void);
+  Option(void);
 
   void Init(const std::string prefix, const std::string option);
 

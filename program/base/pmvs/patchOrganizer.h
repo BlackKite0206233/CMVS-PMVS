@@ -26,7 +26,7 @@ public:
   void CollectPatches(const int index, std::priority_queue<ptch::pPatch, std::vector<ptch::pPatch>, P_compare> &pqpatches);
   void CollectNonFixPatches(const int index, std::vector<ptch::pPatch> &ppatches);
 
-  void WritePatches2(const std::string prefix, bool bExportPLY, bool bExportPatch, bool bExportPSet);
+  void WritePatches2(const std::string prefix, const bool bExportPLY, const bool bExportPatch, const bool bExportPSet);
 
   void WritePLY(const std::vector<ptch::pPatch> &patches, const std::string filename);
   void WritePLY(const std::vector<ptch::pPatch> &patches, const std::string filename, const std::vector<Vec3i> &colors);
@@ -45,7 +45,7 @@ public:
   void SetVImagesVGrids(ptch::Patch &patch);
   void UpdateDepthMaps(ptch::pPatch &ppatch);
 
-  bool IsVisible(const  ptch::Patch &patch, const int image, const int &ix, const int &iy, const float strict, const bool lock);
+  bool IsVisible(const  ptch::Patch &patch, const int image, const int  ix, const int  iy, const float strict, const bool lock);
   bool IsVisible0(const ptch::Patch &patch, const int image,       int &ix,       int &iy, const float strict, const bool lock);
 
   void FindNeighbors(const ptch::Patch &patch, std::vector<ptch::pPatch> &neighbors,

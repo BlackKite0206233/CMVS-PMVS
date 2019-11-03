@@ -45,10 +45,10 @@ void Image::completeName(const std::string &lhs, std::string &rhs, const bool co
 
   // ppm jpg
   if (color) {
-    string stmp0 = lhs + ".ppm";
-    string stmp1 = lhs + ".jpg";
-    string stmp2 = lhs + ".png";
-    string stmp3 = lhs + ".tiff";
+    const string& stmp0 = lhs + ".ppm";
+    const string& stmp1 = lhs + ".jpg";
+    const string& stmp2 = lhs + ".png";
+    const string& stmp3 = lhs + ".tiff";
 
     if (ifstream(stmp0.c_str()))
       rhs = stmp0;
@@ -67,8 +67,8 @@ void Image::completeName(const std::string &lhs, std::string &rhs, const bool co
   }
   // pgm pbm
   else {
-    string stmp0 = lhs + ".pgm";
-    string stmp1 = lhs + ".pbm";
+    const string& stmp0 = lhs + ".pgm";
+    const string& stmp1 = lhs + ".pbm";
 
     if (ifstream(stmp0.c_str()))
       rhs = stmp0;
@@ -146,12 +146,8 @@ void Image::Alloc(const bool fast, const int filter) {
         ReadPBMImage(mName, masks[0], widths[0], heights[0], 0)) {
       // 255: in, 0 : out
       cerr << "Read mask: " << mName << endl;
-      for (auto& m : masks[0]) {
-        if (127 < (int)m)
-					m = (unsigned char)255;
-        else
-					m = (unsigned char)0;
-      }
+      for (auto& m : masks[0])
+				m = (127 < (int)m) ? (unsigned char)255 : 0;
     } else {
 			mName = "";
     }
@@ -162,12 +158,8 @@ void Image::Alloc(const bool fast, const int filter) {
         ReadPBMImage(eName, edges[0], widths[0], heights[0], 0)) {
       cerr << "Read edge: " << eName << endl;
       // 255: in, 0 : out
-      for (auto& e : edges[0]) {
-        if (1 < (unsigned char)e)
-					e = (unsigned char)255;
-        else
-					e = (unsigned char)0;
-      }
+      for (auto& e : edges[0]) 
+				e = (1 < (unsigned char)e) ? (unsigned char)255 : 0;
     } else {
       eName = "";
     }
@@ -229,10 +221,7 @@ void Image::Free(const int freeLevel) {
 }
 
 void Image::Free(void) {
-  if (!alloc)
-    alloc = 1;
-  else
-    alloc = 0;
+  alloc = (!alloc) ? 1 : 0;
 
   vector<vector<unsigned char>>().swap(images);
   vector<vector<unsigned char>>().swap(masks);
@@ -442,9 +431,9 @@ void Image::SetEdge(const float threshold) {
       const int bindex = index + 3 * widths[0];
       for (int i = 0; i < 3; ++i) {
         const int itmp0 = abs(images[0][rindex + i] - images[0][lindex + i]);
-        vvitmp[y][x] += itmp0 * itmp0;
+        vvitmp[y][x]   += itmp0 * itmp0;
         const int itmp1 = abs(images[0][bindex + i] - images[0][tindex + i]);
-        vvitmp[y][x] += itmp1 * itmp1;
+        vvitmp[y][x]   += itmp1 * itmp1;
       }
     }
 
@@ -476,11 +465,7 @@ void Image::SetEdge(const float threshold) {
   for (int y = 0; y < heights[0]; ++y) {
     for (int x = 0; x < widths[0]; ++x) {
       count++;
-      if (newThreshold < vvitmp[y][x])
-        edges[0][count] = (unsigned char)255;
-      else
-        edges[0][count] = (unsigned char)0;
-
+      edges[0][count] = (newThreshold < vvitmp[y][x]) ? (unsigned char)255 : 0;
       // ofstr << (int)edges[0][count] << ' ';
     }
   }
@@ -567,10 +552,7 @@ bool Image::ReadPBMImage(const std::string file, std::vector<unsigned char> &ima
   for (int i = 0; i < bcount; ++i) {
     ifstr.read((char *)&uctmp, sizeof(unsigned char));
     for (int j = 0; j < 8; ++j) {
-      if (uctmp >> 7)
-        image.push_back((unsigned char)0);
-      else
-        image.push_back((unsigned char)255);
+      image.push_back((uctmp >> 7) ? 0 : (unsigned char)255);
       count++;
       uctmp <<= 1;
       if (count == width * height)
@@ -816,8 +798,8 @@ void Image::WriteJpegImage(const std::string filename, const std::vector<unsigne
   }
   jpeg_stdio_dest(&cinfo, outfile);
 
-  cinfo.image_width  = width;
-  cinfo.image_height = height;
+  cinfo.image_width      = width;
+  cinfo.image_height     = height;
   cinfo.input_components = 3;
   cinfo.in_color_space   = JCS_RGB;
   jpeg_set_defaults(&cinfo);
@@ -828,10 +810,7 @@ void Image::WriteJpegImage(const std::string filename, const std::vector<unsigne
   row_stride = width * 3; /* JSAMPLEs per row in image_buffer */
 
   while (cinfo.next_scanline < cinfo.image_height) {
-    if (flip)
-      row_pointer[0] = (JSAMPROW)&buffer[(cinfo.image_height - 1 - cinfo.next_scanline) * row_stride];
-    else
-      row_pointer[0] = (JSAMPROW)&buffer[cinfo.next_scanline * row_stride];
+    row_pointer[0] = (flip) ? (JSAMPROW)&buffer[(cinfo.image_height - 1 - cinfo.next_scanline) * row_stride] : (JSAMPROW)&buffer[cinfo.next_scanline * row_stride];
 		(void)jpeg_write_scanlines(&cinfo, row_pointer, 1);
   }
 
@@ -889,8 +868,8 @@ void Image::RGB2HSV(const float r, const float g, const float b, float &h, float
   min = min3(r, g, b);
 
   del = max - min;
-  v = max;
-  s = max == 0.0 ? 0.0 : del / max;
+  v   = max;
+  s   = max == 0.0 ? 0.0 : del / max;
 
   // h = -1;					/* No hue */
   h = 0.0;
@@ -1117,7 +1096,7 @@ void Image::SIFT(const Vec3f &center, const Vec3f &xaxis, const Vec3f &yaxis, st
 
   if (level) {
     const float scale = 0x0001 << level;
-	SIFT(center / scale, xaxis / scale, yaxis / scale, level, descriptor);
+		SIFT(center / scale, xaxis / scale, yaxis / scale, level, descriptor);
   } else
     SIFT(center, xaxis, yaxis, 0, descriptor);
 }
@@ -1131,8 +1110,8 @@ void Image::SIFT(const Vec3f &center, const Vec3f &xaxis, const Vec3f &yaxis, co
   invert(IA, A);
   */
   // bin descritization (pbin x pbin x abin)
-  const int pbin = 4;
-  const int abin = 8;
+  const int   pbin  = 4;
+  const int   abin  = 8;
   const float aunit = 2 * M_PI / abin;
   // pixels in each bin
   const int pnum = 4;
@@ -1145,7 +1124,7 @@ void Image::SIFT(const Vec3f &center, const Vec3f &xaxis, const Vec3f &yaxis, co
   const int width2 = width / 2;
 
   // Bounding box check
-  const float width205 = width2 - 0.5f;
+  const float width205    = width2 - 0.5f;
   const Vec3f topleft     = center - width205 * yaxis - width205 * xaxis;
   const Vec3f topright    = center - width205 * yaxis + width205 * xaxis;
   const Vec3f bottomleft  = center + width205 * yaxis - width205 * xaxis;

@@ -18,7 +18,7 @@ void PhotoSet::Init(const std::vector<int> &images, const std::string prefix, co
   for (int i = 0; i < (int)images.size(); ++i)
     m_dict[images[i]] = i;
 
-  this->prefix = prefix;
+  this->prefix   = prefix;
   this->maxLevel = max(1, maxlevel);
   photos.resize(num);
   cerr << "Reading images: " << flush;
@@ -154,10 +154,7 @@ float PhotoSet::INCC(const std::vector<std::vector<Vec3f>> &texs, const std::vec
     }
   }
 
-  if (denom == 0.0)
-    return 2.0f;
-  else
-    return incctmp / denom;
+  return (denom == 0.0) ? 2.0f : incctmp / denom;
 }
 
 void PhotoSet::GetMinMaxAngles(const Vec4f &coord, const std::vector<int> &indexes, float &minAngle, float &maxAngle) const {
@@ -245,16 +242,13 @@ void PhotoSet::SetDistances(void) {
 
       distances[i][j] /= avedis;
       const float margin = cos(10.0f * M_PI / 180.0f);
-      const float dis = max(0.0f, 1.0f - ray0 * ray1 - margin);
+      const float dis    = max(0.0f, 1.0f - ray0 * ray1 - margin);
       distances[i][j] += dis;
     }
   }
 }
 
 int PhotoSet::image2index(const int image) const {
-  map<int, int>::const_iterator pos = m_dict.find(image);
-  if (pos == m_dict.end())
-    return -1;
-  else
-    return pos->second;
+  auto pos = m_dict.find(image);
+  return (pos == m_dict.end()) ? -1 : pos->second;
 }

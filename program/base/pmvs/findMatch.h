@@ -27,9 +27,9 @@ public:
   FindMatch(void);
   virtual ~FindMatch();
 
-  void Init(const PMVS3::Soption &option);
+  void Init(const PMVS3::Option &option);
   void Run(void);
-  void Write(const std::string prefix, bool bExportPLY, bool bExportPatch, bool bExportPSet);
+  void Write(const std::string prefix, const bool bExportPLY, const bool bExportPatch, const bool bExportPSet);
 
   bool InsideBimages(const Vec4f &coord) const;
 

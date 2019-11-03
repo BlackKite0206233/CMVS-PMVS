@@ -15,7 +15,7 @@ public:
 
   // grabTex given 2D sampling information
   void GrabTex(const int index, const int level, const Vec2f &iCoord, const Vec2f &xAxis, const Vec2f &yAxis, 
-			   std::vector<Vec3f> &tex, const int normalizef = 1) const;
+							 std::vector<Vec3f> &tex, const int normalizef = 1) const;
 
   // grabTex given 3D sampling information
   void GrabTex(const int index, const int level, const Vec4f &coord,

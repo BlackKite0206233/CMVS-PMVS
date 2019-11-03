@@ -13,8 +13,8 @@ class Harris : public Detector {
 public:
   void Run(const std::vector<unsigned char> &image,
            const std::vector<unsigned char> &mask,
-           const std::vector<unsigned char> &edge, const int width,
-           const int height, const int gspeedup, const float sigma,
+           const std::vector<unsigned char> &edge, 
+					 const int width, const int height, const int gspeedup, const float sigma,
            std::multiset<Point> &result);
 
   virtual ~Harris() {}

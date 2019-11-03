@@ -27,6 +27,6 @@ std::ostream &PMVS3::operator<<(std::ostream &ostr, const Point &rhs) {
   return ostr;
 }
 
-bool SortCpoint(const Point &a, const Point &b) {
+bool PMVS3::SortPoint(const Point &a, const Point &b) {
   return a.response < b.response;
 }

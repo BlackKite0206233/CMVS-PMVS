@@ -94,7 +94,7 @@ void Photo::GrabTex(const int level, const Vec2f &iCoord, const Vec2f &xAxis, co
 
   tex.clear();
   if (minx < 0 || GetWidth(level)  - 1 <= maxx || 
-	  miny < 0 || GetHeight(level) - 1 <= maxy)
+			miny < 0 || GetHeight(level) - 1 <= maxy)
     return;
 
   // tex.reserve(size * size);
@@ -114,13 +114,13 @@ void Photo::GrabTex(const int level, const Vec4f &coord,  const Vec4f &pxAxis, c
                     const int size, std::vector<Vec3f> &tex, float &weight, const bool normalizef) const {
   const int scale = 0x0001 << level;
 
-  const Vec3f icoord3 = Project(coord, level);
+  const Vec3f& icoord3 = Project(coord, level);
   const Vec2f icoord(icoord3[0], icoord3[1]);
 
-  const Vec3f xaxis3 = Project(coord + pxAxis * scale, level) - icoord3;
+  const Vec3f& xaxis3 = Project(coord + pxAxis * scale, level) - icoord3;
   const Vec2f xaxis(xaxis3[0], xaxis3[1]);
 
-  const Vec3f yaxis3 = Project(coord + pyAxis * scale, level) - icoord3;
+  const Vec3f& yaxis3 = Project(coord + pyAxis * scale, level) - icoord3;
   const Vec2f yaxis(yaxis3[0], yaxis3[1]);
 
   GrabTex(level, icoord, xaxis, yaxis, size, tex, normalizef);

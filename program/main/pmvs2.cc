@@ -38,7 +38,7 @@ int main(int argc, char *argv[]) {
 
   clock_t begin = clock();
 
-  PMVS3::Soption   option;
+  PMVS3::Option    option;
   PMVS3::FindMatch findMatch;
   {
 	option.Init(argv[1], argv[2]);

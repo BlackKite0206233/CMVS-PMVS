@@ -31,7 +31,7 @@ public:
   friend std::ostream &operator<<(std::ostream &ostr, const Point &rhs);
 };
 
-bool SortCpoint(const Point &a, const Point &b);
+bool SortPoint(const Point &a, const Point &b);
 
 std::istream &operator>>(std::istream &istr, Point &rhs);
 std::ostream &operator<<(std::ostream &ostr, const Point &rhs);
