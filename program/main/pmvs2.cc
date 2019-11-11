@@ -2,6 +2,7 @@
 #include "../base/pmvs/option.h"
 #include <iostream>
 #include <string>
+#include <sstream>
 
 using namespace PMVS3;
 using namespace std;
@@ -61,7 +62,9 @@ int main(int argc, char *argv[]) {
       bExportPSet = true;
   }
 
-  char buffer[1024];
-  sprintf(buffer, "%smodels/%s", argv[1], argv[2]);
-  findMatch.Write(buffer, bExportPLY, bExportPatch, bExportPSet);
+	stringstream ss;
+	string str;
+	ss << argv[1] << "models/" << argv[2];
+	ss >> str;
+  findMatch.Write(str, bExportPLY, bExportPatch, bExportPSet);
 }

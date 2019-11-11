@@ -24,7 +24,6 @@ void Camera::Init(const std::string cname, const int maxlevel) {
 
   ifstream ifstr;
   ifstr.open(cName.c_str());
-
   string header;
   ifstr >> header;
   if (header == "CONTOUR")

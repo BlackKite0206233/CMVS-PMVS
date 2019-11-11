@@ -4,6 +4,7 @@
 #include "findMatch.h"
 #include "patchOrganizer.h"
 #include <string>
+#include <sstream>
 
 using namespace PMVS3;
 using namespace ptch;
@@ -80,18 +81,21 @@ void PatchOrganizer::Init(void) {
 
 void PatchOrganizer::WritePatches2(const std::string prefix, const bool bExportPLY, const bool bExportptch, const bool bExportPSet) {
   CollectPatches(1);
-
+	stringstream ss;
+	string str;
   if (bExportPLY) {
-    char buffer[1024];
-    sprintf(buffer, "%s.ply", prefix.c_str());
-    WritePLY(pPatches, buffer);
+		ss.clear();
+		ss << prefix << ".ply";
+		ss >> str;
+    WritePLY(pPatches, str);
   }
 
   if (bExportptch) {
-    char buffer[1024];
-    sprintf(buffer, "%s.patch", prefix.c_str());
+		ss.clear();
+		ss << prefix << ".patch";
+		ss >> str;
     ofstream ofstr;
-    ofstr.open(buffer);
+    ofstr.open(str);
     ofstr << "PATCHES" << endl << (int)pPatches.size() << endl;
     for (const auto& patch : pPatches) {
       Index2Image(*patch);
@@ -101,10 +105,11 @@ void PatchOrganizer::WritePatches2(const std::string prefix, const bool bExportP
   }
 
   if (bExportPSet) {
-    char buffer[1024];
-    sprintf(buffer, "%s.pset", prefix.c_str());
+		ss.clear();
+		ss << prefix << ".pset";
+		ss >> str;
     ofstream ofstr;
-    ofstr.open(buffer);
+    ofstr.open(str);
     for (const auto& patch : pPatches)
       ofstr << patch->coord[0]  << ' ' << patch->coord[1]  << ' ' << patch->coord[2]  << ' '
             << patch->normal[0] << ' ' << patch->normal[1] << ' ' << patch->normal[2] << "\n";
