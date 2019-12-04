@@ -255,7 +255,7 @@ bool Expand::checkCounts(ptch::Patch &patch) {
   int full  = 0;
   int empty = 0;
 
-  auto& begin2 = patch.grids.begin();
+  auto begin2 = patch.grids.begin();
 	for (const auto& image : patch.images) {
 		if (fm.tNum <= image) {
 			++begin2;
@@ -303,7 +303,7 @@ bool Expand::updateCounts(const Patch &patch) {
   int empty = 0;
 
   {
-    auto& begin2 = patch.grids.begin();
+    auto begin2 = patch.grids.begin();
 		for (const auto& image : patch.images) {
 			if (fm.tNum <= image) {
 				++begin2;
@@ -332,7 +332,7 @@ bool Expand::updateCounts(const Patch &patch) {
   }
 
   {
-    auto& begin2 = patch.vGrids.begin();
+    auto begin2 = patch.vGrids.begin();
 		for (const auto& image : patch.vImages) {
 #ifdef DEBUG
 			if (fm.tnum <= image) {

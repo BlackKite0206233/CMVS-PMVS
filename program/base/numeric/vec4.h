@@ -232,7 +232,7 @@ template <class T> struct Svec4cmp {
     return lhs[0] < rhs[0] || 
           (lhs[0] == rhs[0] && lhs[1] <  rhs[1]) ||
           (lhs[0] == rhs[0] && lhs[1] == rhs[1] && lhs[2] <  rhs[2]) ||
-          (lhs[0] == rhs[0] && lhs[1] == rhs[1] && lhs[2] == rhs[2] && lhs[3] < rhs[3])
+          (lhs[0] == rhs[0] && lhs[1] == rhs[1] && lhs[2] == rhs[2] && lhs[3] < rhs[3]);
   }
 };
 

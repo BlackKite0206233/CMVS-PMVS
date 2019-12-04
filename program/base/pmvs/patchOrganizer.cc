@@ -262,7 +262,7 @@ void PatchOrganizer::ClearCounts(void) {
 
 void PatchOrganizer::AddPatch(ptch::pPatch &ppatch) {
   // First handle vImages
-  auto& bgrid = ppatch->grids.begin();
+  auto bgrid = ppatch->grids.begin();
 	for (const auto& image : ppatch->images) {
 		if (fm.tNum <= image) {
 			++bgrid;
@@ -477,7 +477,7 @@ void PatchOrganizer::FindNeighbors(const ptch::Patch &patch, std::vector<ptch::p
   unit /= (int)patch.images.size();
   unit *= fm.cSize;
 
-	auto& bgrid = patch.grids.begin();
+	auto bgrid = patch.grids.begin();
 	for (const auto& image : patch.images) {
 		if (fm.tNum <= image) {
 			++bgrid;
@@ -680,7 +680,7 @@ void PatchOrganizer::WritePLY(const std::vector<pPatch> &patches, const std::str
         << "property uchar diffuse_blue" << '\n'
         << "end_header" << '\n';
 
-  auto& colorb = colors.begin();
+  auto colorb = colors.begin();
 
   for (const auto& patch : patches) {
     ofstr << patch->coord[0]  << ' ' << patch->coord[1]  << ' ' << patch->coord[2]  << ' '

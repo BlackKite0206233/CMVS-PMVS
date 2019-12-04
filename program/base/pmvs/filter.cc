@@ -522,7 +522,7 @@ void Filter::filterNeighbor(const int times) {
     for (auto& t : threads)
       thrd_join(t, NULL);
 
-    auto& breject = rejects.begin();
+    auto breject = rejects.begin();
 		for (const auto& patch : fm.po.pPatches) {
 			if ((*breject) == t_time + 1) {
 				count++;
@@ -557,7 +557,7 @@ void Filter::filterSmallGroups(void) {
   fill(label.begin(), label.end(), -1);
 
   list<int> untouch;
-  auto& bpatch = fm.po.pPatches.begin();
+  auto bpatch = fm.po.pPatches.begin();
   for (int p = 0; p < psize; ++p, ++bpatch) {
     untouch.push_back(p);
     (*bpatch)->flag = p;
@@ -796,7 +796,7 @@ void Filter::addPatchVThread(void) {
       break;
 
 		for (const auto& patch : fm.po.pPatches) {
-			auto& bgrid = patch->vGrids.begin();
+			auto bgrid = patch->vGrids.begin();
 			for (const auto& image : patch->vImages) {
 				if (image == index) {
 					const int ix     = (*bgrid)[0];

@@ -300,7 +300,7 @@ void Optim::sortImages(Patch &patch) const {
     units[0] = 0.0f;
 
     while (!indexes.empty()) {
-      auto& ite = min_element(units.begin(), units.end());
+      auto ite = min_element(units.begin(), units.end());
       const int index = ite - units.begin();
 
       patch.images.push_back(indexes[index]);
@@ -342,7 +342,7 @@ void Optim::sortImages(Patch &patch) const {
 
     while (!indexes.empty()) {
       // for (int i = 0; i < size; ++i) {
-      auto& ite = min_element(units.begin(), units.end());
+      auto ite = min_element(units.begin(), units.end());
       const int index = ite - units.begin();
 
       patch.images.push_back(indexes[index]);
@@ -436,7 +436,7 @@ void Optim::ComputeUnits(const ptch::Patch &patch, std::vector<float> &units) co
   const int size = (int)patch.images.size();
   units.resize(size);
 
-  auto& bfine = units.begin();
+  auto bfine = units.begin();
 
 	for (const auto& image : patch.images) {
 		*bfine = INT_MAX / 2;

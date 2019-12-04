@@ -5,6 +5,6 @@ image.h
 image.cc
 photo.h
 photo.cc
-photoSetS.h
-photoSetS.cc
+photoSet.h
+photoSet.cc
 )

@@ -19,8 +19,8 @@ option.h
 option.cc
 patch.h
 patch.cc
-patchOrganizerS.h
-patchOrganizerS.cc
+patchOrganizer.h
+patchOrganizer.cc
 point.h
 point.cc
 seed.h
